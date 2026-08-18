@@ -1,7 +1,0 @@
-My dream is to become a strong Python developer,
-build useful programs, and keep learning every day.
-I also want to travel, create projects that help people,
-and never stop being curious.
-
-Update: I added a picture of my dream colors to this project.
-Git helps me save every step of this journey.
