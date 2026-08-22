@@ -11,27 +11,23 @@ from typing import Any, Callable
 # 1. Рядки
 def string_length(text: str) -> int:
     """Повертає кількість символів у рядку text."""
-    length = len(text)
-    return length
+    return len(text)
 
 
 def concat_strings(text1: str, text2: str) -> str:
     """З'єднує два рядки text1 і text2 та повертає результат."""
-    result = text1 + text2
-    return result
+    return text1 + text2
 
 
 # 2. Числа
 def square(number: int | float) -> int | float:
     """Повертає квадрат числа number (цілого або дробового)."""
-    result = number * number
-    return result
+    return number * number
 
 
 def add_numbers(a: int | float, b: int | float) -> int | float:
     """Повертає суму двох чисел a і b."""
-    result = a + b
-    return result
+    return a + b
 
 
 def divide_int(a: int, b: int) -> tuple[int, int]:
@@ -40,9 +36,7 @@ def divide_int(a: int, b: int) -> tuple[int, int]:
     Повертає:
         Кортеж (ціла частина, остача від ділення).
     """
-    whole = a // b
-    remainder = a % b
-    return whole, remainder
+    return a // b, a % b
 
 
 # 3. Списки
@@ -52,8 +46,7 @@ def average(numbers: list[int | float]) -> float:
     count = len(numbers)
     for i in range(count):
         total = total + numbers[i]
-    avg = total / count
-    return avg
+    return total / count
 
 
 def common_elements(list1: list[Any], list2: list[Any]) -> list[Any]:
@@ -87,16 +80,12 @@ def merge_dicts(dict1: dict[str, Any], dict2: dict[str, Any]) -> dict[str, Any]:
 # 5. Множини
 def union_sets(set1: set[Any], set2: set[Any]) -> set[Any]:
     """Повертає об'єднання двох множин (усі унікальні елементи з обох)."""
-    result = set1.union(set2)
-    return result
+    return set1.union(set2)
 
 
 def is_subset(set1: set[Any], set2: set[Any]) -> bool:
     """Перевіряє, чи є set1 підмножиною set2. Повертає True або False."""
-    if set1.issubset(set2):
-        return True
-    else:
-        return False
+    return set1.issubset(set2)
 
 
 # 6. Умовні вирази та цикли
@@ -132,26 +121,20 @@ print(square(5))
 print(square(2.5))
 print(add_numbers(3, 7))
 print(add_numbers(1.5, 2.5))
-whole, remainder = divide_int(17, 5)
-print("ціла частина:", whole)
-print("залишок:", remainder)
+print("ціла частина і залишок:", divide_int(17, 5))
 
 print("----- 3. Списки -----")
-nums = [10, 20, 30, 40]
-print(average(nums))
+print(average([10, 20, 30, 40]))
 print(common_elements([1, 2, 3, 4, 2], [2, 4, 6, 8]))
 
 print("----- 4. Словники -----")
 d1 = {"ім'я": "Іван", "вік": 20, "група": "КН-21"}
 print("ключі:")
 print_keys(d1)
-d2 = {"вік": 21, "місто": "Київ"}
-print(merge_dicts(d1, d2))
+print(merge_dicts(d1, {"вік": 21, "місто": "Київ"}))
 
 print("----- 5. Множини -----")
-s1 = {1, 2, 3}
-s2 = {3, 4, 5}
-print(union_sets(s1, s2))
+print(union_sets({1, 2, 3}, {3, 4, 5}))
 print(is_subset({1, 2}, {1, 2, 3, 4}))
 print(is_subset({1, 5}, {1, 2, 3}))
 
