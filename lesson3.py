@@ -1,33 +1,53 @@
+"""Урок 3. Базові типи даних, анотації типів та документація.
+
+У цьому файлі функції мають:
+- анотації типів (type hints) — підказки про типи параметрів і результату;
+- документацію (docstring) — текст у потрійних лапках одразу після заголовка функції.
+"""
+
+from typing import Any, Callable
+
+
 # 1. Рядки
-def string_length(text):
+def string_length(text: str) -> int:
+    """Повертає кількість символів у рядку text."""
     length = len(text)
     return length
 
 
-def concat_strings(text1, text2):
+def concat_strings(text1: str, text2: str) -> str:
+    """З'єднує два рядки text1 і text2 та повертає результат."""
     result = text1 + text2
     return result
 
 
 # 2. Числа
-def square(number):
+def square(number: int | float) -> int | float:
+    """Повертає квадрат числа number (цілого або дробового)."""
     result = number * number
     return result
 
 
-def add_numbers(a, b):
+def add_numbers(a: int | float, b: int | float) -> int | float:
+    """Повертає суму двох чисел a і b."""
     result = a + b
     return result
 
 
-def divide_int(a, b):
+def divide_int(a: int, b: int) -> tuple[int, int]:
+    """Ділить a на b націло.
+
+    Повертає:
+        Кортеж (ціла частина, остача від ділення).
+    """
     whole = a // b
     remainder = a % b
     return whole, remainder
 
 
 # 3. Списки
-def average(numbers):
+def average(numbers: list[int | float]) -> float:
+    """Повертає середнє арифметичне елементів списку numbers."""
     total = 0
     count = len(numbers)
     for i in range(count):
@@ -36,7 +56,8 @@ def average(numbers):
     return avg
 
 
-def common_elements(list1, list2):
+def common_elements(list1: list[Any], list2: list[Any]) -> list[Any]:
+    """Повертає спільні елементи двох списків без повторень."""
     result = []
     for i in range(len(list1)):
         item = list1[i]
@@ -47,12 +68,14 @@ def common_elements(list1, list2):
 
 
 # 4. Словники
-def print_keys(dictionary):
+def print_keys(dictionary: dict[str, Any]) -> None:
+    """Виводить усі ключі словника dictionary."""
     for key in dictionary:
         print(key)
 
 
-def merge_dicts(dict1, dict2):
+def merge_dicts(dict1: dict[str, Any], dict2: dict[str, Any]) -> dict[str, Any]:
+    """Об'єднує два словники. Якщо ключ повторюється, береться значення з dict2."""
     new_dict = {}
     for key in dict1:
         new_dict[key] = dict1[key]
@@ -62,12 +85,14 @@ def merge_dicts(dict1, dict2):
 
 
 # 5. Множини
-def union_sets(set1, set2):
+def union_sets(set1: set[Any], set2: set[Any]) -> set[Any]:
+    """Повертає об'єднання двох множин (усі унікальні елементи з обох)."""
     result = set1.union(set2)
     return result
 
 
-def is_subset(set1, set2):
+def is_subset(set1: set[Any], set2: set[Any]) -> bool:
+    """Перевіряє, чи є set1 підмножиною set2. Повертає True або False."""
     if set1.issubset(set2):
         return True
     else:
@@ -75,14 +100,16 @@ def is_subset(set1, set2):
 
 
 # 6. Умовні вирази та цикли
-def even_or_odd(number):
+def even_or_odd(number: int) -> None:
+    """Виводить 'Парне' або 'Непарне' залежно від числа number."""
     if number % 2 == 0:
         print("Парне")
     else:
         print("Непарне")
 
 
-def even_numbers(numbers):
+def even_numbers(numbers: list[int]) -> list[int]:
+    """Повертає новий список лише з парних чисел зі списку numbers."""
     result = []
     for i in range(len(numbers)):
         if numbers[i] % 2 == 0:
@@ -91,7 +118,9 @@ def even_numbers(numbers):
 
 
 # 7. Лямбда
-check_even = lambda n: "парне" if n % 2 == 0 else "не парне"
+# Приймає число і повертає "парне" або "не парне".
+# У lambda немає docstring, тому опис записано коментарем.
+check_even: Callable[[int], str] = lambda n: "парне" if n % 2 == 0 else "не парне"
 
 
 print("----- 1. Рядки -----")
