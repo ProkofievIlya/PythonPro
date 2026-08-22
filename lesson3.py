@@ -51,13 +51,7 @@ def average(numbers: list[int | float]) -> float:
 
 def common_elements(list1: list[Any], list2: list[Any]) -> list[Any]:
     """Повертає спільні елементи двох списків без повторень."""
-    result = []
-    for i in range(len(list1)):
-        item = list1[i]
-        if item in list2:
-            if item not in result:
-                result.append(item)
-    return result
+    return list(set(list1) & set(list2))
 
 
 # 4. Словники
