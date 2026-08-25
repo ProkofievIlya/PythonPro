@@ -8,9 +8,10 @@ from product import Product
 
 
 class Shop:
-    """Магазин. Створюється зі стану у txt (секції [products] і [customers])."""
+    """Магазин зі стану у txt ([products], [customers], [orders])."""
 
     def __init__(self) -> None:
+        """Створює порожній магазин."""
         self.products: list[Product] = []
         self.customers: list[Customer] = []
 
@@ -22,71 +23,134 @@ class Shop:
         return shop
 
     def load_from_file(self, path: str | Path) -> None:
-        """Читає товари та клієнтів з файлу."""
+        """Читає товари, клієнтів і замовлення з файлу."""
         file_path = Path(path)
         if not file_path.is_file():
             raise FileNotFoundError(f"Файл не знайдено: {file_path}")
         self.products, self.customers, section = [], [], ""
+        order_rows: list[list[str]] = []
         for raw in file_path.read_text(encoding="utf-8").splitlines():
             line = raw.strip()
             if not line or line.startswith("#"):
                 continue
             low = line.lower()
-            if low in {"[products]", "[customers]"}:
+            if low in {"[products]", "[customers]", "[orders]"}:
                 section = low[1:-1]
                 continue
             parts = [part.strip() for part in line.split("|")]
             first = parts[0].lower().replace("’", "'").replace("ʼ", "'")
-            if first in {"назва", "ім'я", "имя", "імя"}:
+            if first in {"назва", "ім'я", "имя", "імя", "email"}:
                 continue
-            if section not in {"products", "customers"}:
+            if section not in {"products", "customers", "orders"}:
                 raise ValueError(f"Дані поза секціями: {line}")
             try:
                 if section == "products":
                     name, category, price, stock = parts
                     self.products.append(
-                        Product(name, category, float(price.replace(",", ".")), int(stock))
+                        Product(
+                            name,
+                            category,
+                            float(price.replace(",", ".")),
+                            int(stock),
+                        )
                     )
-                else:
+                elif section == "customers":
                     self.customers.append(Customer(parts[0], parts[1]))
+                else:
+                    order_rows.append(parts)
             except (ValueError, TypeError) as error:
                 raise ValueError(f"Некоректний рядок: {line}") from error
+        for parts in order_rows:
+            self._load_order(parts)
+
+    def _load_order(self, parts: list[str]) -> None:
+        """Відновлює одне замовлення з рядка файлу без списання складу."""
+        if len(parts) < 2:
+            raise ValueError("Рядок замовлення без позицій.")
+        customer = self.find_customer(parts[0])
+        if customer is None:
+            raise ValueError(f"Немає клієнта {parts[0]}.")
+        order = Order()
+        for chunk in parts[1:]:
+            name, qty_raw, price_raw = chunk.split(":")
+            product = self.find_product(name)
+            if product is None:
+                raise ValueError(f"Немає товару «{name}».")
+            order.restore_item(
+                product,
+                int(qty_raw),
+                float(price_raw.replace(",", ".")),
+            )
+        customer.add_order(order)
 
     def save_to_file(self, path: str | Path) -> None:
-        """Зберігає товари та клієнтів у файл."""
-        rows = ["# Стан магазину", "[products]", "Назва|Категорія|Ціна|Кількість"]
-        rows += [f"{p.name}|{p.category}|{p.price:.2f}|{p.stock}" for p in self.products]
+        """Зберігає товари, клієнтів і замовлення у файл."""
+        rows = [
+            "# Стан магазину",
+            "[products]",
+            "Назва|Категорія|Ціна|Кількість",
+        ]
+        rows += [
+            f"{p.name}|{p.category}|{p.price:.2f}|{p.stock}"
+            for p in self.products
+        ]
         rows += ["", "[customers]", "Ім'я|Email"]
         rows += [f"{c.name}|{c.email}" for c in self.customers]
+        rows += ["", "[orders]", "Email|Позиції"]
+        for customer in self.customers:
+            for order in customer.orders:
+                chunks = [customer.email]
+                for product, count, unit in order.grouped_lines():
+                    chunks.append(
+                        f"{product.name}:{count}:{unit:.2f}"
+                    )
+                rows.append("|".join(chunks))
         Path(path).write_text("\n".join(rows) + "\n", encoding="utf-8")
 
     def find_product(self, name: str) -> Product | None:
+        """Шукає товар за назвою."""
         name = name.strip().lower()
         return next((p for p in self.products if p.name.lower() == name), None)
 
     def find_customer(self, email: str) -> Customer | None:
+        """Шукає клієнта за email."""
         email = email.strip().lower()
         return next((c for c in self.customers if c.email == email), None)
 
     def add_product(self, product: Product) -> None:
+        """Додає товар до каталогу."""
         if self.find_product(product.name):
             raise ValueError(f"Товар «{product.name}» уже є в каталозі.")
         self.products.append(product)
 
     def add_customer(self, customer: Customer) -> None:
+        """Додає клієнта до магазину."""
         if self.find_customer(customer.email):
-            raise ValueError(f"Клієнт із поштою {customer.email} уже зареєстрований.")
+            raise ValueError(
+                f"Клієнт із поштою {customer.email} "
+                f"уже зареєстрований."
+            )
         self.customers.append(customer)
 
-    def create_order(self, customer: Customer, items: list[tuple[Product, int]]) -> Order:
+    def create_order(
+        self,
+        customer: Customer,
+        items: list[tuple[Product, int]],
+    ) -> Order:
         """Оформлює замовлення. При помилці склад відкочується."""
         if customer not in self.customers or not items:
-            raise ValueError("Потрібні зареєстрований клієнт і хоча б один товар.")
+            raise ValueError(
+                "Потрібні зареєстрований клієнт "
+                "і хоча б один товар."
+            )
         order = Order()
         try:
             for product, quantity in items:
                 if product not in self.products:
-                    raise ValueError(f"Товар «{product.name}» не належить цьому магазину.")
+                    raise ValueError(
+                        f"Товар «{product.name}» не належить "
+                        f"цьому магазину."
+                    )
                 order.add_product(product, quantity)
         except ValueError:
             for sold in order.products:

@@ -11,18 +11,24 @@ DATA_FILE = Path(__file__).resolve().parent / "data" / "shop_initial.txt"
 
 
 def ask(prompt: str) -> str:
+    """Зчитує рядок з консолі."""
     return input(prompt).strip()
 
 
 def ask_number(prompt: str, integer: bool = False) -> float | int:
+    """Зчитує невід'ємне число (ціле або дробове)."""
     raw = ask(prompt).replace(",", ".")
-    value = int(raw) if integer else float(raw)
+    try:
+        value = int(raw) if integer else float(raw)
+    except ValueError as error:
+        raise ValueError("Потрібно ввести число.") from error
     if value < 0:
         raise ValueError("Число не може бути від'ємним.")
     return value
 
 
 def show_list(title: str, items: list, empty: str) -> None:
+    """Друкує пронумерований список або повідомлення про порожнечу."""
     print(f"\n=== {title} ===")
     if not items:
         print(empty)
@@ -32,6 +38,7 @@ def show_list(title: str, items: list, empty: str) -> None:
 
 
 def pick_product(shop: Shop) -> Product | None:
+    """Просить назву товару і повертає його або None."""
     product = shop.find_product(ask("Назва товару: "))
     if product is None:
         print("Товар не знайдено.")
@@ -39,6 +46,7 @@ def pick_product(shop: Shop) -> Product | None:
 
 
 def pick_customer(shop: Shop) -> Customer | None:
+    """Просить email і повертає клієнта або None."""
     customer = shop.find_customer(ask("Email клієнта: "))
     if customer is None:
         print("Клієнта не знайдено.")
@@ -46,14 +54,17 @@ def pick_customer(shop: Shop) -> Customer | None:
 
 
 def show_products(shop: Shop) -> None:
+    """Показує каталог товарів."""
     show_list("Товари", shop.products, "Каталог порожній.")
 
 
 def show_customers(shop: Shop) -> None:
+    """Показує список клієнтів."""
     show_list("Клієнти", shop.customers, "Клієнтів ще немає.")
 
 
 def change_product_price(shop: Shop) -> None:
+    """Змінює ціну вибраного товару."""
     show_products(shop)
     product = pick_product(shop)
     if product:
@@ -62,27 +73,35 @@ def change_product_price(shop: Shop) -> None:
 
 
 def change_product_stock(shop: Shop) -> None:
+    """Змінює кількість товару на складі."""
     show_products(shop)
     product = pick_product(shop)
     if product:
-        product.change_stock(ask_number("Нова кількість на складі: ", integer=True))
+        product.change_stock(
+            ask_number("Нова кількість на складі: ", integer=True)
+        )
         print(f"Залишок оновлено: {product}")
 
 
 def add_new_product(shop: Shop) -> None:
+    """Додає новий товар у каталог."""
     shop.add_product(Product(
-        ask("Назва: "), ask("Категорія: "),
-        ask_number("Ціна: "), ask_number("Кількість на складі: ", integer=True),
+        ask("Назва: "),
+        ask("Категорія: "),
+        ask_number("Ціна: "),
+        ask_number("Кількість на складі: ", integer=True),
     ))
     print("Товар додано.")
 
 
 def add_new_customer(shop: Shop) -> None:
+    """Реєструє нового клієнта."""
     shop.add_customer(Customer(ask("Ім'я: "), ask("Email: ")))
     print("Клієнта зареєстровано.")
 
 
 def place_order(shop: Shop) -> None:
+    """Оформлює замовлення для вибраного клієнта."""
     show_customers(shop)
     customer = pick_customer(shop)
     if customer is None:
@@ -99,6 +118,9 @@ def place_order(shop: Shop) -> None:
             print("Товар не знайдено, спробуйте ще раз.")
             continue
         qty = int(ask_number("Кількість: ", integer=True))
+        if qty <= 0:
+            print("Кількість має бути додатною.")
+            continue
         items.append((product, qty))
         print(f"  додано: {product.name} x {qty}")
     if not items:
@@ -110,6 +132,7 @@ def place_order(shop: Shop) -> None:
 
 
 def show_customer_orders(shop: Shop) -> None:
+    """Показує замовлення вибраного клієнта."""
     show_customers(shop)
     customer = pick_customer(shop)
     if customer is None:
@@ -123,6 +146,7 @@ def show_customer_orders(shop: Shop) -> None:
 
 
 def save_shop(shop: Shop) -> None:
+    """Зберігає товари, клієнтів і замовлення у файл."""
     shop.save_to_file(DATA_FILE)
     print(f"Стан збережено у файл: {DATA_FILE}")
 
@@ -149,6 +173,7 @@ ACTIONS = {
 
 
 def run() -> None:
+    """Запускає головне меню програми."""
     try:
         sys.stdout.reconfigure(encoding="utf-8")
         sys.stdin.reconfigure(encoding="utf-8")
@@ -159,7 +184,10 @@ def run() -> None:
     except (FileNotFoundError, ValueError) as error:
         print(f"Не вдалося завантажити магазин: {error}")
         return
-    print(f"Завантажено товарів: {len(shop.products)}, клієнтів: {len(shop.customers)}.")
+    print(
+        f"Завантажено товарів: {len(shop.products)}, "
+        f"клієнтів: {len(shop.customers)}."
+    )
     while True:
         print(MENU)
         choice = ask("Оберіть пункт: ")
