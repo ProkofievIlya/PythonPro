@@ -1,83 +1,41 @@
 """Клас замовлення."""
 
-from __future__ import annotations
-
 from product import Product
 
 
 class Order:
-    """Замовлення клієнта.
-
-    Attributes:
-        products: Список товарів (кожна одиниця — окремий елемент).
-        total_amount: Загальна сума замовлення.
-    """
+    """Замовлення: список товарів і загальна сума."""
 
     def __init__(self) -> None:
-        """Створює порожнє замовлення."""
         self.products: list[Product] = []
         self.total_amount: float = 0.0
 
     def add_product(self, product: Product, quantity: int = 1) -> None:
-        """Додає товар до замовлення і списує відповідну кількість зі складу.
-
-        Args:
-            product: Товар, який додається.
-            quantity: Кількість одиниць (за замовчуванням 1).
-
-        Raises:
-            ValueError: Якщо кількість не додатна або на складі недостатньо товару.
-        """
+        """Додає товар до замовлення і списує його зі складу."""
         if quantity <= 0:
-            raise ValueError("Кількість товару в замовленні має бути додатною.")
+            raise ValueError("Кількість має бути додатною.")
         if product.stock < quantity:
             raise ValueError(
-                f"Недостатньо товару «{product.name}»: "
-                f"є {product.stock}, потрібно {quantity}."
+                f"Недостатньо товару «{product.name}»: є {product.stock}, потрібно {quantity}."
             )
-
         product.change_stock(product.stock - quantity)
         self.products.extend([product] * quantity)
         self.calculate_total()
 
     def calculate_total(self) -> float:
-        """Обчислює загальну суму замовлення за цінами товарів у списку.
-
-        Returns:
-            Оновлена сума замовлення.
-        """
+        """Рахує суму замовлення."""
         self.total_amount = sum(item.price for item in self.products)
         return self.total_amount
 
     def __str__(self) -> str:
         if not self.products:
             return "Порожнє замовлення (0.00 грн)"
-
         self.calculate_total()
-        lines = ["Замовлення:"]
-        for product, quantity in self._grouped_products():
-            lines.append(
-                f"  - {product.name} x {quantity} = "
-                f"{product.price * quantity:.2f} грн"
-            )
-        lines.append(f"Разом: {self.total_amount:.2f} грн")
-        return "\n".join(lines)
-
-    def _grouped_products(self) -> list[tuple[Product, int]]:
-        """Згортає повторювані одиниці в пари (товар, кількість)."""
-        grouped: list[tuple[Product, int]] = []
-        indexes: dict[int, int] = {}
+        grouped: dict[int, tuple[Product, int]] = {}
         for item in self.products:
-            key = id(item)
-            if key not in indexes:
-                indexes[key] = len(grouped)
-                grouped.append((item, 0))
-            product, count = grouped[indexes[key]]
-            grouped[indexes[key]] = (product, count + 1)
-        return grouped
-
-    def __repr__(self) -> str:
-        return (
-            f"Order(products={len(self.products)} items, "
-            f"total_amount={self.total_amount!r})"
-        )
+            product, count = grouped.get(id(item), (item, 0))
+            grouped[id(item)] = (product, count + 1)
+        lines = ["Замовлення:"]
+        for product, count in grouped.values():
+            lines.append(f"  - {product.name} x {count} = {product.price * count:.2f} грн")
+        return "\n".join(lines + [f"Разом: {self.total_amount:.2f} грн"])
