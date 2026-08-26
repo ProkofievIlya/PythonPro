@@ -68,13 +68,13 @@ class Shop:
         if len(parts) < 2:
             raise ValueError("Рядок замовлення без позицій.")
         customer = self.find_customer(parts[0])
-        if customer is None:
+        if not customer:
             raise ValueError(f"Немає клієнта {parts[0]}.")
         order = Order()
         for chunk in parts[1:]:
             name, qty_raw, price_raw = chunk.split(":")
             product = self.find_product(name)
-            if product is None:
+            if not product:
                 raise ValueError(f"Немає товару «{name}».")
             order.restore_item(
                 product,

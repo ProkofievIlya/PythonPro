@@ -40,7 +40,7 @@ def show_list(title: str, items: list, empty: str) -> None:
 def pick_product(shop: Shop) -> Product | None:
     """Просить назву товару і повертає його або None."""
     product = shop.find_product(ask("Назва товару: "))
-    if product is None:
+    if not product:
         print("Товар не знайдено.")
     return product
 
@@ -48,7 +48,7 @@ def pick_product(shop: Shop) -> Product | None:
 def pick_customer(shop: Shop) -> Customer | None:
     """Просить email і повертає клієнта або None."""
     customer = shop.find_customer(ask("Email клієнта: "))
-    if customer is None:
+    if not customer:
         print("Клієнта не знайдено.")
     return customer
 
@@ -104,7 +104,7 @@ def place_order(shop: Shop) -> None:
     """Оформлює замовлення для вибраного клієнта."""
     show_customers(shop)
     customer = pick_customer(shop)
-    if customer is None:
+    if not customer:
         return
     show_products(shop)
     items: list[tuple[Product, int]] = []
@@ -114,7 +114,7 @@ def place_order(shop: Shop) -> None:
         if not name:
             break
         product = shop.find_product(name)
-        if product is None:
+        if not product:
             print("Товар не знайдено, спробуйте ще раз.")
             continue
         qty = int(ask_number("Кількість: ", integer=True))
@@ -135,7 +135,7 @@ def show_customer_orders(shop: Shop) -> None:
     """Показує замовлення вибраного клієнта."""
     show_customers(shop)
     customer = pick_customer(shop)
-    if customer is None:
+    if not customer:
         return
     print(f"\n=== Замовлення: {customer.name} ===")
     if not customer.orders:
@@ -195,7 +195,7 @@ def run() -> None:
             print("До побачення.")
             break
         action = ACTIONS.get(choice)
-        if action is None:
+        if not action:
             print("Невідомий пункт меню.")
             continue
         try:
