@@ -1,0 +1,44 @@
+{# Базовий шаблон: шапка, навігація, flash-повідомлення, підвал.
+   Дочірні сторінки наслідують його через {% extends "base.html" %}
+   і заповнюють блоки title та content. #}
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Кінотека{% endblock %}</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Source+Sans+3:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <header class="site-header">
+        <a class="logo" href="{{ url_for('index') }}">Кінотека</a>
+        <nav>
+            <a href="{{ url_for('index') }}" class="{{ 'is-active' if active_page == 'index' else '' }}">Головна</a>
+            <a href="{{ url_for('films_list') }}" class="{{ 'is-active' if active_page == 'films_list' else '' }}">Фільми</a>
+            <a href="{{ url_for('add_film') }}" class="{{ 'is-active' if active_page == 'add_film' else '' }}">Додати фільм</a>
+            <a href="{{ url_for('about') }}" class="{{ 'is-active' if active_page == 'about' else '' }}">Про проєкт</a>
+        </nav>
+    </header>
+
+    <main class="container">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <ul class="flash-list">
+                    {% for category, message in messages %}
+                        <li class="flash flash-{{ category }}">{{ message }}</li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+        {% endwith %}
+
+        {% block content %}{% endblock %}
+    </main>
+
+    <footer class="site-footer">
+        <p>Навчальний Flask-додаток · колекція улюблених фільмів</p>
+    </footer>
+</body>
+</html>

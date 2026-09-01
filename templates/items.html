@@ -1,0 +1,32 @@
+{# Список фільмів (/films). #}
+{% extends "base.html" %}
+
+{% block title %}Фільми · Кінотека{% endblock %}
+
+{% block content %}
+    <section class="page-head">
+        <p class="eyebrow">Колекція</p>
+        <h1>Список фільмів</h1>
+        <p>Записи зберігаються у файлі <code>films.json</code> і не зникають після перезапуску.</p>
+    </section>
+
+    {% if films %}
+        <ul class="film-list">
+            {% for film in films %}
+                <li class="film-card">
+                    <div>
+                        <h2>{{ film.title }}</h2>
+                        <p>{{ film.genre }} · {{ film.year }}</p>
+                    </div>
+                    <span class="rating">{{ film.rating }}/10</span>
+                </li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p class="empty">Список порожній. Додайте перший фільм.</p>
+    {% endif %}
+
+    <p class="page-actions">
+        <a class="btn btn-primary" href="{{ url_for('add_film') }}">Додати фільм</a>
+    </p>
+{% endblock %}

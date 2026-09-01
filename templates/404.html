@@ -1,0 +1,16 @@
+{# Сторінка для неіснуючої адреси. #}
+{% extends "base.html" %}
+
+{% block title %}Сторінку не знайдено · Кінотека{% endblock %}
+
+{% block content %}
+    <section class="hero compact">
+        <p class="eyebrow">Помилка 404</p>
+        <h1>Такої сторінки немає</h1>
+        <p class="lead">Перевірте адресу або поверніться на головну.</p>
+        <div class="hero-actions">
+            <a class="btn btn-primary" href="{{ url_for('index') }}">На головну</a>
+            <a class="btn btn-ghost" href="{{ url_for('films_list') }}">До фільмів</a>
+        </div>
+    </section>
+{% endblock %}

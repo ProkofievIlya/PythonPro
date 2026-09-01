@@ -1,0 +1,32 @@
+{# Форма додавання фільму (/films/add). #}
+{% extends "base.html" %}
+
+{% block title %}Додати фільм · Кінотека{% endblock %}
+
+{% block content %}
+    <section class="page-head">
+        <p class="eyebrow">Колекція</p>
+        <h1>Додати фільм</h1>
+        <p>Заповніть форму — новий запис з’явиться в списку й у файлі даних.</p>
+    </section>
+
+    <form class="film-form" method="post" action="{{ url_for('add_film') }}">
+        <label>
+            Назва
+            <input type="text" name="title" value="{{ form.title if form else '' }}" placeholder="Наприклад, Матриця" required>
+        </label>
+        <label>
+            Рік
+            <input type="number" name="year" min="1888" max="2100" value="{{ form.year if form else '' }}" placeholder="1999" required>
+        </label>
+        <label>
+            Жанр
+            <input type="text" name="genre" value="{{ form.genre if form else '' }}" placeholder="Бойовик / фантастика" required>
+        </label>
+        <label>
+            Оцінка (1–10)
+            <input type="number" name="rating" min="1" max="10" value="{{ form.rating if form else '' }}" placeholder="8" required>
+        </label>
+        <button class="btn btn-primary" type="submit">Зберегти фільм</button>
+    </form>
+{% endblock %}

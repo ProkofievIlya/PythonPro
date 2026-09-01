@@ -1,0 +1,34 @@
+{# Головна сторінка (/): лендінг кінотеки. #}
+{% extends "base.html" %}
+
+{% block title %}Головна · Кінотека{% endblock %}
+
+{% block content %}
+    <section class="hero">
+        <p class="eyebrow">Особиста колекція</p>
+        <h1>Фільми, які варто переглянути ще раз</h1>
+        <p class="lead">
+            Міні-лендінг кінотеки: перегляньте список, додайте новий фільм
+            через форму й подивіться, як працюють шаблони Flask.
+        </p>
+        <div class="hero-actions">
+            <a class="btn btn-primary" href="{{ url_for('films_list') }}">До списку фільмів</a>
+            <a class="btn btn-ghost" href="{{ url_for('add_film') }}">Додати свій фільм</a>
+        </div>
+    </section>
+
+    <section class="stats">
+        <div class="stat">
+            <strong>{{ films_count }}</strong>
+            <span>фільмів у списку</span>
+        </div>
+        <div class="stat">
+            <strong>4</strong>
+            <span>маршрути додатку</span>
+        </div>
+        <div class="stat">
+            <strong>6</strong>
+            <span>HTML-шаблони</span>
+        </div>
+    </section>
+{% endblock %}

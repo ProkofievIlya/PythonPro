@@ -1,0 +1,35 @@
+{# Окрема сторінка «Про проєкт» (/about). #}
+{% extends "base.html" %}
+
+{% block title %}Про проєкт · Кінотека{% endblock %}
+
+{% block content %}
+    <section class="hero compact">
+        <p class="eyebrow">Про проєкт</p>
+        <h1>Невелика кінотека на Flask</h1>
+        <p class="lead">
+            Це навчальний веб-додаток: кілька маршрутів, HTML-шаблони
+            з наслідуванням і форма для додавання фільмів.
+            Зараз у колекції {{ films_count }} записів.
+        </p>
+    </section>
+
+    <section class="cards">
+        <article class="card">
+            <h2>Маршрути</h2>
+            <p><code>/</code> — головна сторінка</p>
+            <p><code>/films</code> — список фільмів</p>
+            <p><code>/films/add</code> — форма додавання</p>
+            <p><code>/about</code> — ця сторінка</p>
+        </article>
+        <article class="card">
+            <h2>Шаблони</h2>
+            <p><code>base.html</code> — спільний каркас</p>
+            <p><code>index.html</code> — головна</p>
+            <p><code>items.html</code> — список фільмів</p>
+            <p><code>add.html</code> — форма</p>
+            <p><code>about.html</code> — про проєкт</p>
+            <p><code>404.html</code> — сторінка помилки</p>
+        </article>
+    </section>
+{% endblock %}
