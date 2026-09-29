@@ -101,4 +101,7 @@ STATIC_URL = "/static/"
 STATICFILES_DIRS = [BASE_DIR / "static"]
 STATIC_ROOT = BASE_DIR / "staticfiles"
 
+LOGIN_URL = "/admin/login/"
+LOGIN_REDIRECT_URL = "/"
+
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
