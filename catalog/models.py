@@ -1,3 +1,5 @@
+"""Моделі каталогу: категорії та книги."""
+
 from typing import Any
 
 from django.db import models

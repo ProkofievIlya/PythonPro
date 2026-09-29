@@ -1,0 +1,72 @@
+{% extends "catalog/base.html" %}
+
+{% block title %}Каталог книг{% endblock %}
+
+{% block content %}
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+    <div>
+        <h1 class="h2 mb-1">Каталог книг</h1>
+        <p class="text-muted mb-0">Режим: {{ view_type }}</p>
+    </div>
+    {% if view_type == "CBV" %}
+        <a href="{% url 'catalog:book_create' %}" class="btn btn-success">+ Нова книга</a>
+    {% endif %}
+</div>
+
+{% include "catalog/includes/book_filters.html" %}
+
+{% if books %}
+<div class="table-responsive">
+    <table class="table table-hover table-books align-middle">
+        <thead class="table-light">
+        <tr>
+            <th>Назва</th>
+            <th>Автор</th>
+            <th>Категорія</th>
+            <th>Ціна</th>
+            <th>Залишок</th>
+            {% if view_type == "CBV" %}
+                <th class="text-end">Дії</th>
+            {% endif %}
+        </tr>
+        </thead>
+        <tbody>
+        {% for book in books %}
+            <tr>
+                <td>
+                    {% if view_type == "FBV" %}
+                        <a href="{% url 'catalog:book_detail_fbv' book.pk %}">{{ book.title }}</a>
+                    {% else %}
+                        <a href="{% url 'catalog:book_detail' book.pk %}">{{ book.title }}</a>
+                    {% endif %}
+                </td>
+                <td>{{ book.author }}</td>
+                <td>{{ book.category.name }}</td>
+                <td>{{ book.price }} ₴</td>
+                <td>
+                    {% if book.in_stock %}
+                        <span class="badge text-bg-success">{{ book.stock }}</span>
+                    {% else %}
+                        <span class="badge text-bg-secondary">немає</span>
+                    {% endif %}
+                </td>
+                {% if view_type == "CBV" %}
+                    <td class="text-end text-nowrap">
+                        <a href="{% url 'catalog:book_update' book.pk %}" class="btn btn-sm btn-outline-primary">Змінити</a>
+                        <a href="{% url 'catalog:book_delete' book.pk %}" class="btn btn-sm btn-outline-danger">Видалити</a>
+                    </td>
+                {% endif %}
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% else %}
+<div class="alert alert-warning">
+    Книг не знайдено. Спробуйте інший фільтр або
+    <code>python manage.py seed_demo</code>.
+</div>
+{% endif %}
+
+{% include "catalog/includes/pagination.html" %}
+{% endblock %}

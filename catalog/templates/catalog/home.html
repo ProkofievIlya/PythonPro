@@ -1,0 +1,28 @@
+{% extends "catalog/base.html" %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="row align-items-center mb-4">
+    <div class="col-lg-8">
+        <h1 class="display-6">{{ title }}</h1>
+        <p class="lead">{{ message }}</p>
+        <p class="text-muted">
+            Реалізовано <strong>ListView</strong>, <strong>DetailView</strong>,
+            <strong>CreateView</strong>, <strong>UpdateView</strong>, <strong>DeleteView</strong>
+            з шаблонами Bootstrap.
+        </p>
+    </div>
+    <div class="col-lg-4">
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <h2 class="h5 card-title">Швидкі дії</h2>
+                <div class="d-grid gap-2">
+                    <a class="btn btn-primary" href="{% url 'catalog:book_list' %}">Відкрити каталог</a>
+                    <a class="btn btn-outline-primary" href="{% url 'catalog:book_create' %}">Додати книгу</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
