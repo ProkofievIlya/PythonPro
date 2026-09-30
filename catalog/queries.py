@@ -1,5 +1,3 @@
-"""Приклади ORM: filter, annotate, Q-об'єкти."""
-
 from decimal import Decimal
 
 from django.db.models import Avg, Count, Q, QuerySet, Sum

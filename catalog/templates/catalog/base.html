@@ -24,16 +24,13 @@
                     <a class="nav-link" href="{% url 'catalog:home' %}">Головна</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="{% url 'catalog:book_list' %}">Каталог (CBV)</a>
+                    <a class="nav-link" href="{% url 'catalog:book_list' %}">Каталог</a>
                 </li>
                 {% if user.is_authenticated %}
                 <li class="nav-item">
                     <a class="nav-link" href="{% url 'catalog:book_create' %}">Додати книгу</a>
                 </li>
                 {% endif %}
-                <li class="nav-item">
-                    <a class="nav-link" href="{% url 'catalog:book_list_fbv' %}">Каталог (FBV)</a>
-                </li>
             </ul>
             <ul class="navbar-nav">
                 {% if user.is_authenticated %}
@@ -70,7 +67,7 @@
 
 <footer class="bg-light border-top py-3 mt-auto">
     <div class="container text-muted small">
-        Книжковий магазин · Django CBV · namespace <code>catalog</code>
+        Книжковий магазин
     </div>
 </footer>
 

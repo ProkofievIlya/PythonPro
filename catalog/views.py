@@ -1,5 +1,3 @@
-"""Представлення каталогу: FBV (навчальні) та CBV (CRUD магазину)."""
-
 from typing import Any
 
 from django.contrib.auth.mixins import LoginRequiredMixin
@@ -23,7 +21,6 @@ BOOKS_PER_PAGE: int = 4
 
 
 def _filter_books(queryset: QuerySet[Book], params: QueryDict) -> QuerySet[Book]:
-    """Застосовує GET-фільтри: пошук, категорія, наявність на складі."""
     q = params.get("q", "").strip()
     if q:
         queryset = queryset.filter(
@@ -43,30 +40,24 @@ def _filter_books(queryset: QuerySet[Book], params: QueryDict) -> QuerySet[Book]
 
 
 def _preserved_query(params: QueryDict, exclude: tuple[str, ...] = ("page",)) -> str:
-    """Рядок query string без службових ключів (для пагінації з фільтрами)."""
     copy = params.copy()
     for key in exclude:
         copy.pop(key, None)
     return copy.urlencode()
 
 
-# --- FBV (навчальні приклади) ---
-
-
 def home(request: HttpRequest) -> HttpResponse:
-    """Головна сторінка магазину."""
     return render(
         request,
         "catalog/home.html",
         {
             "title": "Книжковий магазин",
-            "message": "Каталог книг на Class-Based Views та Bootstrap.",
+            "message": "Оберіть книгу в каталозі або додайте нову після входу.",
         },
     )
 
 
 def book_list_fbv(request: HttpRequest) -> HttpResponse:
-    """Список книг (function-based view) з пагінацією та фільтрами."""
     queryset = _filter_books(
         Book.objects.select_related("category").order_by("title"),
         request.GET,
@@ -91,7 +82,6 @@ def book_list_fbv(request: HttpRequest) -> HttpResponse:
 
 
 def book_detail_fbv(request: HttpRequest, pk: int) -> HttpResponse:
-    """Детальна сторінка однієї книги (FBV)."""
     book = get_object_or_404(Book.objects.select_related("category"), pk=pk)
     return render(
         request,
@@ -103,12 +93,7 @@ def book_detail_fbv(request: HttpRequest, pk: int) -> HttpResponse:
     )
 
 
-# --- CBV (основний каталог) ---
-
-
 class BookListView(ListView):
-    """Каталог книг: ListView з фільтрами та пагінацією."""
-
     model = Book
     template_name = "catalog/book_list.html"
     context_object_name = "books"
@@ -130,8 +115,6 @@ class BookListView(ListView):
 
 
 class BookDetailView(DetailView):
-    """Сторінка однієї книги (DetailView)."""
-
     model = Book
     template_name = "catalog/book_detail.html"
     context_object_name = "book"
@@ -146,8 +129,6 @@ class BookDetailView(DetailView):
 
 
 class BookCreateView(LoginRequiredMixin, CreateView):
-    """Додавання нової книги (CreateView + BookForm). Доступ лише для авторизованих."""
-
     model = Book
     form_class = BookForm
     template_name = "catalog/book_form.html"
@@ -155,8 +136,6 @@ class BookCreateView(LoginRequiredMixin, CreateView):
 
 
 class BookUpdateView(LoginRequiredMixin, UpdateView):
-    """Редагування книги (UpdateView). Доступ лише для авторизованих."""
-
     model = Book
     form_class = BookForm
     template_name = "catalog/book_form.html"
@@ -169,8 +148,6 @@ class BookUpdateView(LoginRequiredMixin, UpdateView):
 
 
 class BookDeleteView(LoginRequiredMixin, DeleteView):
-    """Видалення книги з підтвердженням (DeleteView). Доступ лише для авторизованих."""
-
     model = Book
     template_name = "catalog/book_confirm_delete.html"
     context_object_name = "book"
@@ -178,10 +155,8 @@ class BookDeleteView(LoginRequiredMixin, DeleteView):
 
 
 def page_not_found(request: HttpRequest, exception: Exception) -> HttpResponse:
-    """Кастомна сторінка 404 (handler404)."""
     return render(request, "404.html", status=404)
 
 
 def server_error(request: HttpRequest) -> HttpResponse:
-    """Кастомна сторінка 500 (handler500)."""
     return render(request, "500.html", status=500)
