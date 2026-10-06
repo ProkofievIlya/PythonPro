@@ -1,13 +1,9 @@
-"""Форми каталогу для CreateView та UpdateView."""
-
 from django import forms
 
 from .models import Book
 
 
 class BookForm(forms.ModelForm):
-    """ModelForm для створення та редагування книги (поля Bootstrap)."""
-
     class Meta:
         model = Book
         fields = ("title", "author", "price", "description", "stock", "category")
