@@ -175,3 +175,13 @@ class BookDeleteView(LoginRequiredMixin, DeleteView):
     template_name = "catalog/book_confirm_delete.html"
     context_object_name = "book"
     success_url = reverse_lazy("catalog:book_list")
+
+
+def page_not_found(request: HttpRequest, exception: Exception) -> HttpResponse:
+    """Кастомна сторінка 404 (handler404)."""
+    return render(request, "404.html", status=404)
+
+
+def server_error(request: HttpRequest) -> HttpResponse:
+    """Кастомна сторінка 500 (handler500)."""
+    return render(request, "500.html", status=500)
