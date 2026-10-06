@@ -1,0 +1,39 @@
+{% if is_paginated %}
+<nav aria-label="Пагінація каталогу">
+    <ul class="pagination justify-content-center flex-wrap">
+        <li class="page-item {% if not page_obj.has_previous %}disabled{% endif %}">
+            {% if page_obj.has_previous %}
+                <a class="page-link"
+                   href="?page={{ page_obj.previous_page_number }}{% if preserved_query %}&{{ preserved_query }}{% endif %}">
+                    Попередня
+                </a>
+            {% else %}
+                <span class="page-link">Попередня</span>
+            {% endif %}
+        </li>
+
+        {% for num in page_obj.paginator.page_range %}
+            <li class="page-item {% if page_obj.number == num %}active{% endif %}">
+                <a class="page-link"
+                   href="?page={{ num }}{% if preserved_query %}&{{ preserved_query }}{% endif %}">
+                    {{ num }}
+                </a>
+            </li>
+        {% endfor %}
+
+        <li class="page-item {% if not page_obj.has_next %}disabled{% endif %}">
+            {% if page_obj.has_next %}
+                <a class="page-link"
+                   href="?page={{ page_obj.next_page_number }}{% if preserved_query %}&{{ preserved_query }}{% endif %}">
+                    Наступна
+                </a>
+            {% else %}
+                <span class="page-link">Наступна</span>
+            {% endif %}
+        </li>
+    </ul>
+    <p class="text-center text-muted small">
+        Сторінка {{ page_obj.number }} з {{ page_obj.paginator.num_pages }}
+    </p>
+</nav>
+{% endif %}

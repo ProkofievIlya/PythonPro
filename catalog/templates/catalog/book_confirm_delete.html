@@ -1,0 +1,19 @@
+{% extends "catalog/base.html" %}
+
+{% block title %}Видалити: {{ book.title }}{% endblock %}
+
+{% block content %}
+<div class="card border-danger shadow-sm">
+    <div class="card-body">
+        <h1 class="h4 text-danger">Підтвердження видалення</h1>
+        <p>Ви впевнені, що хочете видалити книгу <strong>{{ book.title }}</strong> ({{ book.author }})?</p>
+        <form method="post">
+            {% csrf_token %}
+            <div class="d-flex gap-2">
+                <button type="submit" class="btn btn-danger">Так, видалити</button>
+                <a href="{% url 'catalog:book_detail' book.pk %}" class="btn btn-outline-secondary">Скасувати</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

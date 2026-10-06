@@ -1,0 +1,48 @@
+{% extends "catalog/base.html" %}
+
+{% block title %}{{ book.title }}{% endblock %}
+
+{% block content %}
+<nav aria-label="breadcrumb" class="mb-3">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{% url 'catalog:home' %}">Головна</a></li>
+        {% if view_type == "FBV" %}
+            <li class="breadcrumb-item"><a href="{% url 'catalog:book_list_fbv' %}">Каталог</a></li>
+        {% else %}
+            <li class="breadcrumb-item"><a href="{% url 'catalog:book_list' %}">Каталог</a></li>
+        {% endif %}
+        <li class="breadcrumb-item active" aria-current="page">{{ book.title }}</li>
+    </ol>
+</nav>
+
+<div class="card shadow-sm">
+    <div class="card-body">
+        <p class="text-muted small mb-2">Режим: {{ view_type }}</p>
+        <h1 class="h2 card-title">{{ book.title }}</h1>
+        <p class="mb-1"><strong>Автор:</strong> {{ book.author }}</p>
+        <p class="mb-1"><strong>Категорія:</strong> {{ book.category.name }}</p>
+        <p class="mb-1"><strong>Ціна:</strong> {{ book.price }} ₴</p>
+        <p class="mb-3">
+            <strong>Залишок:</strong>
+            {% if book.in_stock %}
+                <span class="badge text-bg-success">{{ book.stock }} шт.</span>
+            {% else %}
+                <span class="badge text-bg-secondary">немає в наявності</span>
+            {% endif %}
+        </p>
+        {% if book.description %}
+            <p class="card-text">{{ book.description }}</p>
+        {% endif %}
+
+        <div class="d-flex flex-wrap gap-2 mt-4">
+            {% if view_type == "FBV" %}
+                <a href="{% url 'catalog:book_list_fbv' %}" class="btn btn-outline-secondary">← До каталогу</a>
+            {% else %}
+                <a href="{% url 'catalog:book_list' %}" class="btn btn-outline-secondary">← До каталогу</a>
+                <a href="{% url 'catalog:book_update' book.pk %}" class="btn btn-primary">Редагувати</a>
+                <a href="{% url 'catalog:book_delete' book.pk %}" class="btn btn-danger">Видалити</a>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

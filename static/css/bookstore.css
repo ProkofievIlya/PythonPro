@@ -1,0 +1,21 @@
+body {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+main {
+    flex: 1;
+}
+
+.book-card .card-title {
+    min-height: 3rem;
+}
+
+.table-books td {
+    vertical-align: middle;
+}
+
+.filter-panel {
+    background-color: var(--bs-light);
+}
