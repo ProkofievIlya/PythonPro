@@ -2,6 +2,7 @@
 
 from typing import Any
 
+from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.paginator import Paginator
 from django.db.models import Q, QuerySet
 from django.http import HttpRequest, HttpResponse, QueryDict
@@ -144,8 +145,8 @@ class BookDetailView(DetailView):
         return context
 
 
-class BookCreateView(CreateView):
-    """Додавання нової книги (CreateView + BookForm)."""
+class BookCreateView(LoginRequiredMixin, CreateView):
+    """Додавання нової книги (CreateView + BookForm). Доступ лише для авторизованих."""
 
     model = Book
     form_class = BookForm
@@ -153,8 +154,8 @@ class BookCreateView(CreateView):
     success_url = reverse_lazy("catalog:book_list")
 
 
-class BookUpdateView(UpdateView):
-    """Редагування книги (UpdateView)."""
+class BookUpdateView(LoginRequiredMixin, UpdateView):
+    """Редагування книги (UpdateView). Доступ лише для авторизованих."""
 
     model = Book
     form_class = BookForm
@@ -167,8 +168,8 @@ class BookUpdateView(UpdateView):
         )
 
 
-class BookDeleteView(DeleteView):
-    """Видалення книги з підтвердженням (DeleteView)."""
+class BookDeleteView(LoginRequiredMixin, DeleteView):
+    """Видалення книги з підтвердженням (DeleteView). Доступ лише для авторизованих."""
 
     model = Book
     template_name = "catalog/book_confirm_delete.html"

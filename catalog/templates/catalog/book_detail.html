@@ -39,8 +39,10 @@
                 <a href="{% url 'catalog:book_list_fbv' %}" class="btn btn-outline-secondary">← До каталогу</a>
             {% else %}
                 <a href="{% url 'catalog:book_list' %}" class="btn btn-outline-secondary">← До каталогу</a>
-                <a href="{% url 'catalog:book_update' book.pk %}" class="btn btn-primary">Редагувати</a>
-                <a href="{% url 'catalog:book_delete' book.pk %}" class="btn btn-danger">Видалити</a>
+                {% if user.is_authenticated %}
+                    <a href="{% url 'catalog:book_update' book.pk %}" class="btn btn-primary">Редагувати</a>
+                    <a href="{% url 'catalog:book_delete' book.pk %}" class="btn btn-danger">Видалити</a>
+                {% endif %}
             {% endif %}
         </div>
     </div>
