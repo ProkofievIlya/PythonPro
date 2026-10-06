@@ -1,6 +1,6 @@
 from typing import Any
 
-from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib.auth.mixins import PermissionRequiredMixin
 from django.core.paginator import Paginator
 from django.db.models import Q, QuerySet
 from django.http import HttpRequest, HttpResponse, QueryDict
@@ -128,14 +128,16 @@ class BookDetailView(DetailView):
         return context
 
 
-class BookCreateView(LoginRequiredMixin, CreateView):
+class BookCreateView(PermissionRequiredMixin, CreateView):
+    permission_required = "catalog.add_book"
     model = Book
     form_class = BookForm
     template_name = "catalog/book_form.html"
     success_url = reverse_lazy("catalog:book_list")
 
 
-class BookUpdateView(LoginRequiredMixin, UpdateView):
+class BookUpdateView(PermissionRequiredMixin, UpdateView):
+    permission_required = "catalog.change_book"
     model = Book
     form_class = BookForm
     template_name = "catalog/book_form.html"
@@ -147,7 +149,8 @@ class BookUpdateView(LoginRequiredMixin, UpdateView):
         )
 
 
-class BookDeleteView(LoginRequiredMixin, DeleteView):
+class BookDeleteView(PermissionRequiredMixin, DeleteView):
+    permission_required = "catalog.delete_book"
     model = Book
     template_name = "catalog/book_confirm_delete.html"
     context_object_name = "book"

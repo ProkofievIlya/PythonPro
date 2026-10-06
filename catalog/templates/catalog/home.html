@@ -14,10 +14,10 @@
                 <h2 class="h5 card-title">Швидкі дії</h2>
                 <div class="d-grid gap-2">
                     <a class="btn btn-primary" href="{% url 'catalog:book_list' %}">Відкрити каталог</a>
-                    {% if user.is_authenticated %}
+                    {% if perms.catalog.add_book %}
                         <a class="btn btn-outline-primary" href="{% url 'catalog:book_create' %}">Додати книгу</a>
-                    {% else %}
-                        <a class="btn btn-outline-secondary" href="/admin/login/">Увійти, щоб додати книгу</a>
+                    {% elif not user.is_authenticated %}
+                        <a class="btn btn-outline-secondary" href="{% url 'account_login' %}">Увійти</a>
                     {% endif %}
                 </div>
             </div>

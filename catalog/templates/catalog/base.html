@@ -26,7 +26,7 @@
                 <li class="nav-item">
                     <a class="nav-link" href="{% url 'catalog:book_list' %}">Каталог</a>
                 </li>
-                {% if user.is_authenticated %}
+                {% if perms.catalog.add_book %}
                 <li class="nav-item">
                     <a class="nav-link" href="{% url 'catalog:book_create' %}">Додати книгу</a>
                 </li>
@@ -38,11 +38,17 @@
                         <span class="nav-link disabled">{{ user.username }}</span>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="/admin/logout/">Вийти</a>
+                        <form method="post" action="{% url 'account_logout' %}" class="d-inline">
+                            {% csrf_token %}
+                            <button type="submit" class="nav-link btn btn-link text-white">Вийти</button>
+                        </form>
                     </li>
                 {% else %}
                     <li class="nav-item">
-                        <a class="nav-link" href="/admin/login/">Увійти</a>
+                        <a class="nav-link" href="{% url 'account_login' %}">Увійти</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'account_signup' %}">Реєстрація</a>
                     </li>
                 {% endif %}
                 <li class="nav-item">

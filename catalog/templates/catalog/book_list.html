@@ -7,7 +7,7 @@
     <div>
         <h1 class="h2 mb-1">Каталог книг</h1>
     </div>
-    {% if view_type == "CBV" and user.is_authenticated %}
+    {% if view_type == "CBV" and perms.catalog.add_book %}
         <a href="{% url 'catalog:book_create' %}" class="btn btn-success">+ Нова книга</a>
     {% endif %}
 </div>
@@ -24,7 +24,7 @@
             <th>Категорія</th>
             <th>Ціна</th>
             <th>Залишок</th>
-            {% if view_type == "CBV" and user.is_authenticated %}
+            {% if view_type == "CBV" and perms.catalog.change_book or view_type == "CBV" and perms.catalog.delete_book %}
                 <th class="text-end">Дії</th>
             {% endif %}
         </tr>
@@ -49,10 +49,14 @@
                         <span class="badge text-bg-secondary">немає</span>
                     {% endif %}
                 </td>
-                {% if view_type == "CBV" and user.is_authenticated %}
+                {% if view_type == "CBV" and perms.catalog.change_book or view_type == "CBV" and perms.catalog.delete_book %}
                     <td class="text-end text-nowrap">
-                        <a href="{% url 'catalog:book_update' book.pk %}" class="btn btn-sm btn-outline-primary">Змінити</a>
-                        <a href="{% url 'catalog:book_delete' book.pk %}" class="btn btn-sm btn-outline-danger">Видалити</a>
+                        {% if perms.catalog.change_book %}
+                            <a href="{% url 'catalog:book_update' book.pk %}" class="btn btn-sm btn-outline-primary">Змінити</a>
+                        {% endif %}
+                        {% if perms.catalog.delete_book %}
+                            <a href="{% url 'catalog:book_delete' book.pk %}" class="btn btn-sm btn-outline-danger">Видалити</a>
+                        {% endif %}
                     </td>
                 {% endif %}
             </tr>
