@@ -1,108 +1,73 @@
-# Bookstore — каталог книг (Django)
+# Bookstore
 
-Навчальний проєкт інтернет-магазину книг. Поточне завдання: моделі каталогу, адмін-панель, приклади ORM і міграції. Подальші домашні роботи розширюють цей же проєкт.
+Навчальний каталог книг на Django: список і картка книги, додавання та редагування, вхід користувачів і права доступу.
 
 ## Можливості
 
-- Моделі **Category** (назва, slug) та **Book** (назва, автор, ціна, опис, залишок, категорія)
-- **Django Admin**: інлайни книг у категорії, фільтри, пошук, швидке редагування ціни та залишку
-- Модуль **`catalog/queries.py`**: `filter`, `annotate`, `Q`-об'єкти
-- Налаштування через **`.env`** (секретний ключ, DEBUG, ALLOWED_HOSTS)
+- Категорії та книги, адмінка
+- Сторінки каталогу на Bootstrap: список, деталі, форма, видалення
+- Пошук, фільтр за категорією та наявністю, пагінація по 4 книги
+- Свій користувач (`CustomUser`, поле `phone`)
+- Реєстрація, вхід і вихід. Кнопка GitHub з’являється, якщо в `.env` задані ключі
+- Групи «Менеджери каталогу» та «Переглядачі»
+- Додавати, змінювати і видаляти книги можуть лише користувачі з відповідним правом
+- Django Debug Toolbar (коли `DEBUG=True`)
+- Лог запитів у консоль і файл `logs/django.log`
 
 ## Вимоги
 
 - Python 3.10+
 - pip
 
-## Швидкий старт
+## Запуск
 
 ```powershell
-cd "шлях\до\777"
+cd "шлях\до\Django_Lesson"
 pip install -r requirements.txt
-```
-
-Скопіюйте шаблон змінних оточення:
-
-```powershell
 copy .env.example .env
-```
-
-У `.env` задайте `DJANGO_SECRET_KEY` (якщо в ключі є `#` або `$`, обгорніть значення в лапки).
-
-Застосуйте міграції та створіть адміністратора:
-
-```powershell
 python manage.py migrate
 python manage.py createsuperuser
+python manage.py seed_demo
 python manage.py runserver
 ```
 
+У `.env` задайте `DJANGO_SECRET_KEY`. Якщо в ключі є `#` або `$`, візьміть значення в лапки.
+
 - Сайт: http://127.0.0.1:8000/
+- Вхід: http://127.0.0.1:8000/accounts/login/
+- Реєстрація: http://127.0.0.1:8000/accounts/signup/
 - Адмінка: http://127.0.0.1:8000/admin/
 
-## Структура проєкту
+Суперкористувач бачить усі дії з книгами. Звичайного користувача після реєстрації треба додати в групу в адмінці, інакше він може лише переглядати каталог.
+
+## Структура
 
 ```
-bookstore/          # налаштування проєкту (settings, urls)
-catalog/            # додаток каталогу
-  models.py         # Category, Book
-  admin.py          # реєстрація в admin
-  queries.py        # приклади ORM
-  migrations/       # міграції БД
-manage.py
-requirements.txt
-.env.example        # зразок для .env (комітиться)
-.env                # локальні секрети (не комітиться)
-```
-
-## Моделі
-
-| Модель    | Поля |
-|-----------|------|
-| Category  | `name`, `slug` |
-| Book      | `title`, `author`, `price`, `description`, `stock`, `category` (FK), `created_at` |
-
-## ORM (приклади)
-
-У Django shell:
-
-```python
-python manage.py shell
-```
-
-```python
-from decimal import Decimal
-from catalog.queries import (
-    books_in_stock,
-    search_books,
-    categories_with_stats,
-    available_or_cheap_books,
-)
-
-books_in_stock()
-search_books("толстой")
-categories_with_stats()
-available_or_cheap_books(Decimal("200.00"))
+bookstore/          налаштування, логування, middleware
+accounts/           користувач, групи
+catalog/            моделі, сторінки каталогу, форми
+templates/          вхід, реєстрація, сторінки 403, 404, 500
+static/             свої стилі
 ```
 
 ## Змінні оточення
 
 | Змінна | Опис |
 |--------|------|
-| `DJANGO_SECRET_KEY` | Секретний ключ Django |
-| `DJANGO_DEBUG` | `True` / `False` |
-| `DJANGO_ALLOWED_HOSTS` | Хости через кому, напр. `127.0.0.1,localhost` |
+| `DJANGO_SECRET_KEY` | Секретний ключ |
+| `DJANGO_DEBUG` | `True` або `False` |
+| `DJANGO_ALLOWED_HOSTS` | Хости через кому |
+| `GITHUB_CLIENT_ID` | Необов’язково, для кнопки GitHub |
+| `GITHUB_CLIENT_SECRET` | Необов’язково, для кнопки GitHub |
 
-Пароль суперкористувача зберігається в базі (хеш), не в `.env`.
+Пароль у `.env` не зберігається. Файл `.env` у git не потрапляє.
 
-## База даних
+Для GitHub OAuth callback: `http://127.0.0.1:8000/accounts/github/login/callback/`
 
-За замовчуванням — SQLite (`db.sqlite3`). Демо-дані (3 категорії + 3 книги):
+## Демо-дані
 
 ```powershell
 python manage.py seed_demo
 ```
 
-## Ліцензія
-
-Навчальний проєкт.
+Команда додає 3 категорії та кілька книг, якщо їх ще немає.
