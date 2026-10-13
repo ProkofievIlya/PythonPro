@@ -19,7 +19,21 @@
 - Python 3.10+
 - pip
 
-## Запуск
+## Запуск у Docker
+
+Потрібні Docker і Docker Compose. У `.env` уже мають бути змінні PostgreSQL і Redis (зразок у `.env.example`).
+
+```powershell
+docker compose up --build
+```
+
+Сайт: http://127.0.0.1:8001/
+
+Контейнер `web` сам виконує `migrate` і `collectstatic`. Дані PostgreSQL лежать у volume `postgres_data`, зібрана статика — у `static_data`.
+
+## Запуск без Docker
+
+PostgreSQL і Redis мають уже працювати. У `.env` поставте `POSTGRES_HOST=localhost` і `REDIS_URL=redis://127.0.0.1:6379/1`.
 
 ```powershell
 cd "шлях\до\Django_Lesson"
