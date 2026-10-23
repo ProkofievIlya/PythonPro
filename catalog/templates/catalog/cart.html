@@ -1,0 +1,58 @@
+{% extends "catalog/base.html" %}
+{% load static %}
+
+{% block title %}Кошик{% endblock %}
+
+{% block content %}
+<h1 class="h2 mb-4">Кошик</h1>
+
+{% if cart.total %}
+<div class="site-card p-3 p-md-4">
+    {% for row in cart %}
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 {% if not forloop.last %}border-bottom pb-3 mb-3{% endif %}">
+        <div class="d-flex align-items-center gap-3">
+            <img class="cart-photo" src="{% static 'img/books/' %}{{ row.book.pk }}.jpg" alt="{{ row.book.title }}">
+            <div>
+                <a class="fw-semibold text-decoration-none" href="{% url 'catalog:book_detail' row.book.pk %}">{{ row.book.title }}</a>
+                <div class="text-muted small">{{ row.book.author }} · {{ row.quantity }} шт.</div>
+            </div>
+        </div>
+        <div class="d-flex align-items-center gap-3">
+            <span class="price">{{ row.total }} ₴</span>
+            <form method="post" action="{% url 'catalog:cart_remove' row.book.pk %}">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-sm btn-outline-danger">Прибрати</button>
+            </form>
+        </div>
+    </div>
+    {% endfor %}
+    <div class="d-flex flex-wrap justify-content-between align-items-end gap-3 mt-4">
+        <p class="h4 mb-0">Разом: {{ cart.total }} ₴</p>
+        <form method="post" action="{% url 'catalog:cart_clear' %}">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-outline-secondary">Очистити</button>
+        </form>
+    </div>
+    <hr>
+    {% if user.is_authenticated %}
+        <form method="post" action="{% url 'catalog:checkout' %}" class="row g-2 align-items-end">
+            {% csrf_token %}
+            <div class="col-md-6">
+                <label class="form-label" for="order-email">Email для листа</label>
+                <input id="order-email" type="email" name="email" value="{{ email }}" class="form-control" required>
+            </div>
+            <div class="col-md-3">
+                <button type="submit" class="btn btn-accent w-100">Оплатити</button>
+            </div>
+        </form>
+    {% else %}
+        <a class="btn btn-accent" href="{% url 'account_login' %}?next={% url 'catalog:cart_detail' %}">Увійти, щоб оплатити</a>
+    {% endif %}
+</div>
+{% else %}
+<div class="site-card p-4">
+    <p class="mb-3">Кошик порожній.</p>
+    <a class="btn btn-accent" href="{% url 'catalog:book_list' %}">До каталогу</a>
+</div>
+{% endif %}
+{% endblock %}

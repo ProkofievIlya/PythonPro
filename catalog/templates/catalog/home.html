@@ -3,25 +3,35 @@
 {% block title %}{{ title }}{% endblock %}
 
 {% block content %}
-<div class="row align-items-center mb-4">
-    <div class="col-lg-8">
-        <h1 class="display-6">{{ title }}</h1>
+<section class="hero mb-2">
+    <div>
+        <h1 class="display-5 mb-3">{{ title }}</h1>
         <p class="lead">{{ message }}</p>
-    </div>
-    <div class="col-lg-4">
-        <div class="card shadow-sm">
-            <div class="card-body">
-                <h2 class="h5 card-title">Швидкі дії</h2>
-                <div class="d-grid gap-2">
-                    <a class="btn btn-primary" href="{% url 'catalog:book_list' %}">Відкрити каталог</a>
-                    {% if perms.catalog.add_book %}
-                        <a class="btn btn-outline-primary" href="{% url 'catalog:book_create' %}">Додати книгу</a>
-                    {% elif not user.is_authenticated %}
-                        <a class="btn btn-outline-secondary" href="{% url 'account_login' %}">Увійти</a>
-                    {% endif %}
-                </div>
-            </div>
+        <div class="hero-actions d-flex flex-wrap gap-2 mt-4">
+            <a class="btn btn-accent btn-lg" href="{% url 'catalog:book_list' %}">Дивитися каталог</a>
+            <a class="btn btn-outline-light btn-lg" href="{% url 'catalog:cart_detail' %}">Кошик</a>
         </div>
     </div>
+    <div class="hero-actions">
+        {% if perms.catalog.add_book %}
+            <a class="btn btn-outline-light" href="{% url 'catalog:book_create' %}">Додати книгу</a>
+        {% elif not user.is_authenticated %}
+            <a class="btn btn-outline-light" href="{% url 'account_login' %}">Увійти</a>
+        {% endif %}
+    </div>
+</section>
+
+{% if featured %}
+<div class="section-title">
+    <h2 class="h3 mb-0">Зараз у наявності</h2>
+    <a href="{% url 'catalog:book_list' %}">Увесь каталог</a>
 </div>
+<div class="row g-3">
+    {% for book in featured %}
+    <div class="col-md-6 col-xl-3">
+        {% include "catalog/includes/book_card.html" with view_type="CBV" %}
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
 {% endblock %}

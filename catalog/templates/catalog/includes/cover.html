@@ -1,0 +1,2 @@
+{% load static %}
+<img class="cover-photo {% if large %}detail-cover{% endif %}" src="{% static 'img/books/' %}{{ book.pk }}.jpg" alt="{{ book.title }}">

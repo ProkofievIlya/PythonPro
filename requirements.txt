@@ -1,6 +1,8 @@
 Django>=5.0,<6.0
 python-dotenv>=1.0,<2.0
 psycopg[binary]>=3.1,<4.0
+redis>=5,<6
 requests>=2.32,<3.0
 django-debug-toolbar>=4.4,<6.0
 django-allauth>=65,<66
+stripe>=11,<13

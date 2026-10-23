@@ -1,11 +1,16 @@
 from typing import Any
 
+from django.contrib import messages
+from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import PermissionRequiredMixin
 from django.core.paginator import Paginator
 from django.db.models import Q, QuerySet
-from django.http import HttpRequest, HttpResponse, QueryDict
-from django.shortcuts import get_object_or_404, render
-from django.urls import reverse_lazy
+from django.conf import settings
+from django.http import HttpRequest, HttpResponse, JsonResponse, QueryDict
+from django.shortcuts import get_object_or_404, redirect, render
+from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.http import require_POST
+from django.urls import reverse, reverse_lazy
 from django.views.generic import (
     CreateView,
     DeleteView,
@@ -14,8 +19,14 @@ from django.views.generic import (
     UpdateView,
 )
 
+import json
+
+import stripe
+
+from .cart import Cart
+from .checkout import cancel_order, create_order, mark_order_paid, start_checkout
 from .forms import BookForm
-from .models import Book, Category
+from .models import Book, Category, Order
 
 BOOKS_PER_PAGE: int = 4
 
@@ -47,12 +58,18 @@ def _preserved_query(params: QueryDict, exclude: tuple[str, ...] = ("page",)) ->
 
 
 def home(request: HttpRequest) -> HttpResponse:
+    featured = (
+        Book.objects.filter(stock__gt=0)
+        .select_related("category")
+        .order_by("-created_at")[:4]
+    )
     return render(
         request,
         "catalog/home.html",
         {
-            "title": "Книжковий магазин",
-            "message": "Оберіть книгу в каталозі або додайте нову після входу.",
+            "title": "Книги, які залишаються з вами",
+            "message": "Художні, наукові й дитячі видання. Оберіть книгу і покладіть її в кошик.",
+            "featured": featured,
         },
     )
 
@@ -163,3 +180,110 @@ def page_not_found(request: HttpRequest, exception: Exception) -> HttpResponse:
 
 def server_error(request: HttpRequest) -> HttpResponse:
     return render(request, "500.html", status=500)
+
+
+@require_POST
+def cart_add(request: HttpRequest, pk: int) -> HttpResponse:
+    book = get_object_or_404(Book, pk=pk)
+    Cart(request).add(book)
+    return redirect("catalog:cart_detail")
+
+
+@require_POST
+def cart_remove(request: HttpRequest, pk: int) -> HttpResponse:
+    book = get_object_or_404(Book, pk=pk)
+    Cart(request).remove(book)
+    return redirect("catalog:cart_detail")
+
+
+@require_POST
+def cart_clear(request: HttpRequest) -> HttpResponse:
+    Cart(request).clear()
+    return redirect("catalog:cart_detail")
+
+
+def cart_detail(request: HttpRequest) -> HttpResponse:
+    cart = Cart(request)
+    return render(
+        request,
+        "catalog/cart.html",
+        {
+            "cart": cart,
+            "email": request.user.email if request.user.is_authenticated else "",
+        },
+    )
+
+
+@login_required
+@require_POST
+def checkout(request: HttpRequest) -> HttpResponse:
+    cart = Cart(request)
+    if len(cart) == 0:
+        messages.error(request, "Кошик порожній.")
+        return redirect("catalog:cart_detail")
+    email = (request.POST.get("email") or "").strip()
+    if not email:
+        messages.error(request, "Вкажіть email для замовлення.")
+        return redirect("catalog:cart_detail")
+    if not settings.STRIPE_SECRET_KEY:
+        order = create_order(request.user, email, cart)
+        order.status = Order.Status.PAID
+        order.save(update_fields=["status"])
+        cart.clear()
+        messages.info(request, "Ключ Stripe не задано, замовлення збережено локально.")
+        return redirect(f"{reverse('catalog:checkout_success')}?order={order.pk}")
+    order = None
+    try:
+        order = create_order(request.user, email, cart)
+        url = start_checkout(request, order)
+    except Exception:
+        if order is not None:
+            cancel_order(order)
+        messages.error(request, "Не вдалося створити оплату. Спробуйте ще раз.")
+        return redirect("catalog:cart_detail")
+    request.session["pending_order_id"] = order.pk
+    cart.clear()
+    return redirect(url)
+
+
+@login_required
+def checkout_success(request: HttpRequest) -> HttpResponse:
+    session_id = request.GET.get("session_id", "")
+    order_id = request.GET.get("order", "")
+    if order_id.isdigit():
+        order = Order.objects.filter(pk=int(order_id), user=request.user).first()
+    else:
+        order = mark_order_paid(session_id) if session_id else None
+    request.session.pop("pending_order_id", None)
+    return render(request, "catalog/checkout_success.html", {"order": order})
+
+
+@login_required
+def checkout_cancel(request: HttpRequest) -> HttpResponse:
+    order_id = request.session.pop("pending_order_id", None)
+    if order_id:
+        order = Order.objects.filter(pk=order_id, user=request.user).first()
+        if order:
+            cancel_order(order)
+    messages.info(request, "Оплату скасовано.")
+    return redirect("catalog:cart_detail")
+
+
+@csrf_exempt
+def stripe_webhook(request: HttpRequest) -> JsonResponse:
+    payload = request.body
+    signature = request.META.get("HTTP_STRIPE_SIGNATURE", "")
+    stripe.api_key = settings.STRIPE_SECRET_KEY
+    try:
+        if settings.STRIPE_WEBHOOK_SECRET:
+            event = stripe.Webhook.construct_event(
+                payload, signature, settings.STRIPE_WEBHOOK_SECRET
+            )
+        else:
+            event = json.loads(payload)
+    except (ValueError, stripe.SignatureVerificationError):
+        return JsonResponse({"error": "invalid payload"}, status=400)
+    if event["type"] == "checkout.session.completed":
+        session = event["data"]["object"]
+        mark_order_paid(session.get("id", ""))
+    return JsonResponse({"status": "ok"})

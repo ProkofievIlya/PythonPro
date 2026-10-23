@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import Book, Category
+from .models import Book, Category, Order, OrderItem
 
 
 class BookInline(admin.TabularInline):
@@ -35,3 +35,18 @@ class BookAdmin(admin.ModelAdmin):
         ("Деталі", {"fields": ("price", "stock", "description")}),
         ("Системне", {"fields": ("created_at",)}),
     )
+
+
+class OrderItemInline(admin.TabularInline):
+    model = OrderItem
+    extra = 0
+    readonly_fields = ("book", "price", "quantity")
+
+
+@admin.register(Order)
+class OrderAdmin(admin.ModelAdmin):
+    list_display = ("id", "user", "email", "status", "total", "created_at")
+    list_filter = ("status", "created_at")
+    search_fields = ("email", "user__username", "stripe_session_id")
+    readonly_fields = ("created_at", "stripe_session_id", "total")
+    inlines = (OrderItemInline,)

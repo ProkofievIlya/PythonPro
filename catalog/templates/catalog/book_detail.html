@@ -4,7 +4,7 @@
 
 {% block content %}
 <nav aria-label="breadcrumb" class="mb-3">
-    <ol class="breadcrumb">
+    <ol class="breadcrumb mb-0">
         <li class="breadcrumb-item"><a href="{% url 'catalog:home' %}">Головна</a></li>
         {% if view_type == "FBV" %}
             <li class="breadcrumb-item"><a href="{% url 'catalog:book_list_fbv' %}">Каталог</a></li>
@@ -15,36 +15,51 @@
     </ol>
 </nav>
 
-<div class="card shadow-sm">
-    <div class="card-body">
-        <h1 class="h2 card-title">{{ book.title }}</h1>
-        <p class="mb-1"><strong>Автор:</strong> {{ book.author }}</p>
-        <p class="mb-1"><strong>Категорія:</strong> {{ book.category.name }}</p>
-        <p class="mb-1"><strong>Ціна:</strong> {{ book.price }} ₴</p>
-        <p class="mb-3">
-            <strong>Залишок:</strong>
-            {% if book.in_stock %}
-                <span class="badge text-bg-success">{{ book.stock }} шт.</span>
-            {% else %}
-                <span class="badge text-bg-secondary">немає в наявності</span>
-            {% endif %}
-        </p>
-        {% if book.description %}
-            <p class="card-text">{{ book.description }}</p>
+<div class="site-card p-4">
+    <div class="detail-layout">
+        {% if book.pk|divisibleby:4 %}
+            {% include "catalog/includes/cover.html" with tone="cover-d" large=1 %}
+        {% elif book.pk|divisibleby:3 %}
+            {% include "catalog/includes/cover.html" with tone="cover-c" large=1 %}
+        {% elif book.pk|divisibleby:2 %}
+            {% include "catalog/includes/cover.html" with tone="cover-b" large=1 %}
+        {% else %}
+            {% include "catalog/includes/cover.html" with tone="cover-a" large=1 %}
         {% endif %}
-
-        <div class="d-flex flex-wrap gap-2 mt-4">
-            {% if view_type == "FBV" %}
-                <a href="{% url 'catalog:book_list_fbv' %}" class="btn btn-outline-secondary">← До каталогу</a>
-            {% else %}
-                <a href="{% url 'catalog:book_list' %}" class="btn btn-outline-secondary">← До каталогу</a>
-                {% if perms.catalog.change_book %}
-                    <a href="{% url 'catalog:book_update' book.pk %}" class="btn btn-primary">Редагувати</a>
+        <div>
+            <div class="text-uppercase small text-muted mb-2">{{ book.category.name }}</div>
+            <h1 class="display-6">{{ book.title }}</h1>
+            <p class="fs-5 text-muted">{{ book.author }}</p>
+            <p class="display-6 price mb-3">{{ book.price }} ₴</p>
+            <p class="mb-3">
+                {% if book.in_stock %}
+                    <span class="badge text-bg-success">В наявності · {{ book.stock }} шт.</span>
+                {% else %}
+                    <span class="badge text-bg-secondary">Немає в наявності</span>
                 {% endif %}
-                {% if perms.catalog.delete_book %}
-                    <a href="{% url 'catalog:book_delete' book.pk %}" class="btn btn-danger">Видалити</a>
-                {% endif %}
+            </p>
+            {% if book.description %}
+                <p class="lead fs-6">{{ book.description }}</p>
             {% endif %}
+            <div class="d-flex flex-wrap gap-2 mt-4">
+                {% if book.in_stock %}
+                    <form method="post" action="{% url 'catalog:cart_add' book.pk %}">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-accent btn-lg">Додати в кошик</button>
+                    </form>
+                {% endif %}
+                {% if view_type == "FBV" %}
+                    <a href="{% url 'catalog:book_list_fbv' %}" class="btn btn-outline-secondary btn-lg">До каталогу</a>
+                {% else %}
+                    <a href="{% url 'catalog:book_list' %}" class="btn btn-outline-secondary btn-lg">До каталогу</a>
+                    {% if perms.catalog.change_book %}
+                        <a href="{% url 'catalog:book_update' book.pk %}" class="btn btn-outline-secondary">Редагувати</a>
+                    {% endif %}
+                    {% if perms.catalog.delete_book %}
+                        <a href="{% url 'catalog:book_delete' book.pk %}" class="btn btn-outline-danger">Видалити</a>
+                    {% endif %}
+                {% endif %}
+            </div>
         </div>
     </div>
 </div>

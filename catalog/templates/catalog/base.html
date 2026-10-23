@@ -5,15 +5,18 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>{% block title %}Книжковий магазин{% endblock %}</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;600;700&family=Source+Serif+4:opsz,wght@8..60,600;8..60,700&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
           integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
     <link rel="stylesheet" href="{% static 'css/bookstore.css' %}">
     {% block extra_css %}{% endblock %}
 </head>
 <body>
-<nav class="navbar navbar-expand-lg navbar-dark bg-primary mb-4">
+<nav class="navbar navbar-expand-lg navbar-dark mb-4">
     <div class="container">
-        <a class="navbar-brand" href="{% url 'catalog:home' %}">📚 Bookstore</a>
+        <a class="navbar-brand" href="{% url 'catalog:home' %}">Bookstore</a>
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNavbar"
                 aria-controls="mainNavbar" aria-expanded="false" aria-label="Меню">
             <span class="navbar-toggler-icon"></span>
@@ -26,6 +29,11 @@
                 <li class="nav-item">
                     <a class="nav-link" href="{% url 'catalog:book_list' %}">Каталог</a>
                 </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'catalog:cart_detail' %}">
+                        Кошик{% if cart_count %} ({{ cart_count }}){% endif %}
+                    </a>
+                </li>
                 {% if perms.catalog.add_book %}
                 <li class="nav-item">
                     <a class="nav-link" href="{% url 'catalog:book_create' %}">Додати книгу</a>
@@ -35,12 +43,12 @@
             <ul class="navbar-nav">
                 {% if user.is_authenticated %}
                     <li class="nav-item">
-                        <span class="nav-link disabled">{{ user.username }}</span>
+                        <span class="nav-link">{{ user.username }}</span>
                     </li>
                     <li class="nav-item">
                         <form method="post" action="{% url 'account_logout' %}" class="d-inline">
                             {% csrf_token %}
-                            <button type="submit" class="nav-link btn btn-link text-white">Вийти</button>
+                            <button type="submit" class="nav-link btn btn-link">Вийти</button>
                         </form>
                     </li>
                 {% else %}
@@ -71,8 +79,8 @@
     {% block content %}{% endblock %}
 </main>
 
-<footer class="bg-light border-top py-3 mt-auto">
-    <div class="container text-muted small">
+<footer class="site-footer border-top py-3 mt-auto">
+    <div class="container small">
         Книжковий магазин
     </div>
 </footer>

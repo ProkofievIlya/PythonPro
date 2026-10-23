@@ -1,0 +1,40 @@
+<article class="book-card">
+    {% if book.pk|divisibleby:4 %}
+        {% include "catalog/includes/cover.html" with tone="cover-d" %}
+    {% elif book.pk|divisibleby:3 %}
+        {% include "catalog/includes/cover.html" with tone="cover-c" %}
+    {% elif book.pk|divisibleby:2 %}
+        {% include "catalog/includes/cover.html" with tone="cover-b" %}
+    {% else %}
+        {% include "catalog/includes/cover.html" with tone="cover-a" %}
+    {% endif %}
+    <h2>
+        {% if view_type == "FBV" %}
+            <a href="{% url 'catalog:book_detail_fbv' book.pk %}">{{ book.title }}</a>
+        {% else %}
+            <a href="{% url 'catalog:book_detail' book.pk %}">{{ book.title }}</a>
+        {% endif %}
+    </h2>
+    <p class="book-meta mb-2">{{ book.author }}</p>
+    <div class="book-card-foot">
+        <span class="price">{{ book.price }} ₴</span>
+        {% if book.in_stock %}
+            <form method="post" action="{% url 'catalog:cart_add' book.pk %}">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-sm btn-accent">У кошик</button>
+            </form>
+        {% else %}
+            <span class="badge text-bg-secondary">Немає</span>
+        {% endif %}
+    </div>
+    {% if view_type == "CBV" and perms.catalog.change_book or view_type == "CBV" and perms.catalog.delete_book %}
+        <div class="d-flex gap-2 mt-2">
+            {% if perms.catalog.change_book %}
+                <a href="{% url 'catalog:book_update' book.pk %}" class="btn btn-sm btn-outline-secondary">Змінити</a>
+            {% endif %}
+            {% if perms.catalog.delete_book %}
+                <a href="{% url 'catalog:book_delete' book.pk %}" class="btn btn-sm btn-outline-danger">Видалити</a>
+            {% endif %}
+        </div>
+    {% endif %}
+</article>

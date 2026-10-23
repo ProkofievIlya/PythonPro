@@ -1,0 +1,13 @@
+{% extends "catalog/base.html" %}
+
+{% block title %}Оплата{% endblock %}
+
+{% block content %}
+{% if order %}
+    <h1 class="h2">Замовлення #{{ order.pk }} оплачено</h1>
+    <p>Лист надіслано на {{ order.email }}.</p>
+{% else %}
+    <h1 class="h2">Оплату не підтверджено</h1>
+{% endif %}
+<a href="{% url 'catalog:book_list' %}">До каталогу</a>
+{% endblock %}
