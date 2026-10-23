@@ -23,6 +23,17 @@ class Cart:
         self.cart[key] = min(current + quantity, book.stock)
         self.session.modified = True
 
+    def decrease(self, book: Book, quantity: int = 1) -> None:
+        key = str(book.pk)
+        if key not in self.cart or quantity < 1:
+            return
+        current = int(self.cart[key]) - quantity
+        if current < 1:
+            del self.cart[key]
+        else:
+            self.cart[key] = current
+        self.session.modified = True
+
     def remove(self, book: Book) -> None:
         key = str(book.pk)
         if key in self.cart:

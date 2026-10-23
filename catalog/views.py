@@ -10,7 +10,7 @@ from django.http import HttpRequest, HttpResponse, JsonResponse, QueryDict
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
-from django.urls import reverse, reverse_lazy
+from django.urls import reverse_lazy
 from django.views.generic import (
     CreateView,
     DeleteView,
@@ -190,6 +190,13 @@ def cart_add(request: HttpRequest, pk: int) -> HttpResponse:
 
 
 @require_POST
+def cart_decrease(request: HttpRequest, pk: int) -> HttpResponse:
+    book = get_object_or_404(Book, pk=pk)
+    Cart(request).decrease(book)
+    return redirect("catalog:cart_detail")
+
+
+@require_POST
 def cart_remove(request: HttpRequest, pk: int) -> HttpResponse:
     book = get_object_or_404(Book, pk=pk)
     Cart(request).remove(book)
@@ -226,12 +233,8 @@ def checkout(request: HttpRequest) -> HttpResponse:
         messages.error(request, "Вкажіть email для замовлення.")
         return redirect("catalog:cart_detail")
     if not settings.STRIPE_SECRET_KEY:
-        order = create_order(request.user, email, cart)
-        order.status = Order.Status.PAID
-        order.save(update_fields=["status"])
-        cart.clear()
-        messages.info(request, "Ключ Stripe не задано, замовлення збережено локально.")
-        return redirect(f"{reverse('catalog:checkout_success')}?order={order.pk}")
+        messages.error(request, "Оплата Stripe ще не налаштована.")
+        return redirect("catalog:cart_detail")
     order = None
     try:
         order = create_order(request.user, email, cart)
@@ -249,11 +252,7 @@ def checkout(request: HttpRequest) -> HttpResponse:
 @login_required
 def checkout_success(request: HttpRequest) -> HttpResponse:
     session_id = request.GET.get("session_id", "")
-    order_id = request.GET.get("order", "")
-    if order_id.isdigit():
-        order = Order.objects.filter(pk=int(order_id), user=request.user).first()
-    else:
-        order = mark_order_paid(session_id) if session_id else None
+    order = mark_order_paid(session_id) if session_id else None
     request.session.pop("pending_order_id", None)
     return render(request, "catalog/checkout_success.html", {"order": order})
 
