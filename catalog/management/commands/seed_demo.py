@@ -5,8 +5,31 @@ from django.core.management.base import BaseCommand
 from catalog.models import Book, Category
 
 
+EN_CATEGORIES = {
+    "hudozhnya-literatura": "Fiction",
+    "naukova-literatura": "Science",
+    "dytiacha-literatura": "Children's books",
+}
+
+# назва (укр.) -> (title_en, author_en, description_en)
+EN_BOOKS = {
+    "Кобзар": ("Kobzar", "Taras Shevchenko", "A collection of poems by the Ukrainian classic."),
+    "Коротка історія часу": ("A Brief History of Time", "Stephen Hawking", "A popular science book about the Universe."),
+    "Гаррі Поттер і філософський камінь": ("Harry Potter and the Philosopher's Stone", "J.K. Rowling", "The first book in the series about a young wizard."),
+    "Зачарована Десна": ("The Enchanted Desna", "Lina Kostenko", "A poetry collection by a contemporary Ukrainian poet."),
+    "Тигролов": ("The Tiger Hunters", "Ivan Bahrianyi", "An adventure novel about escape and life in the taiga."),
+    "Людина розумна. Коротка історія людства": ("Sapiens: A Brief History of Humankind", "Yuval Noah Harari", "A survey of human history from the Stone Age to the present day."),
+    "Астрофізика з гумором": ("Astrophysics with Humor", "Neil deGrasse Tyson", "An easy introduction to space and the physics of stars."),
+    "Маленький принц": ("The Little Prince", "Antoine de Saint-Exupery", "A fairy tale about friendship, responsibility and growing up."),
+    "Кайдашева сім'я": ("The Kaidash Family", "Ivan Nechuy-Levytsky", "A novel about a Ukrainian family and the quarrels between a mother-in-law and her daughters-in-law."),
+    "Енеїда": ("Eneida", "Ivan Kotliarevsky", "A comic poem that launched modern Ukrainian literature."),
+    "Коротка історія майже всього": ("A Short History of Nearly Everything", "Bill Bryson", "A lively account of science, from the Big Bang to the emergence of humans."),
+    "Аліса в Країні Див": ("Alice in Wonderland", "Lewis Carroll", "A fairy tale about a girl who finds herself in a world of strange creatures and riddles."),
+}
+
+
 class Command(BaseCommand):
-    help = "Додає 3 категорії та демо-книги (get_or_create)."
+    help = "Додає 3 категорії та демо-книги з англійськими назвами (get_or_create)."
 
     def handle(self, *args, **options) -> None:
         categories_data = [
@@ -19,6 +42,9 @@ class Command(BaseCommand):
             category, created = Category.objects.get_or_create(
                 slug=slug,
                 defaults={"name": name},
+            )
+            Category.objects.filter(pk=category.pk).update(
+                name_en=EN_CATEGORIES.get(slug, "")
             )
             categories.append(category)
             if created:
@@ -132,6 +158,12 @@ class Command(BaseCommand):
                     "stock": stock,
                     "category": category,
                 },
+            )
+            title_en, author_en, description_en = EN_BOOKS.get(title, ("", "", ""))
+            Book.objects.filter(pk=book.pk).update(
+                title_en=title_en,
+                author_en=author_en,
+                description_en=description_en,
             )
             if created:
                 self.stdout.write(self.style.SUCCESS(f"Книга: {title}"))

@@ -1,0 +1,21 @@
+[run]
+source =
+    catalog
+    accounts
+    bookstore
+omit =
+    */migrations/*
+    */tests/*
+    bookstore/settings.py
+    bookstore/settings_test.py
+    bookstore/wsgi.py
+    bookstore/asgi.py
+    manage.py
+
+[report]
+fail_under = 70
+show_missing = True
+exclude_lines =
+    pragma: no cover
+    if TYPE_CHECKING:
+    raise NotImplementedError

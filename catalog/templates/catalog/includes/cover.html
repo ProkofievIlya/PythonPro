@@ -1,2 +1,1 @@
-{% load static %}
-<img class="cover-photo {% if large %}detail-cover{% endif %}" src="{% static 'img/books/' %}{{ book.pk }}.jpg" alt="{{ book.title }}">
+<img class="cover-photo {% if large %}detail-cover{% endif %}" src="{{ book.cover_url }}" alt="{{ book.localized_title }}" loading="lazy">

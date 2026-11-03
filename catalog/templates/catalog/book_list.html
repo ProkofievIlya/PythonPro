@@ -1,32 +1,33 @@
 {% extends "catalog/base.html" %}
+{% load i18n %}
 
-{% block title %}Каталог книг{% endblock %}
+{% block title %}{% trans "Каталог книг" %}{% endblock %}
 
 {% block content %}
 <div class="d-flex flex-wrap justify-content-between align-items-end gap-2 mb-3">
     <div>
-        <h1 class="h2 mb-1">Каталог</h1>
-        <p class="text-muted mb-0">Оберіть книгу і додайте її в кошик.</p>
+        <h1 class="h2 mb-1">{% trans "Каталог" %}</h1>
+        <p class="text-muted mb-0">{% trans "Оберіть книгу і додайте її в кошик." %}</p>
     </div>
     {% if view_type == "CBV" and perms.catalog.add_book %}
-        <a href="{% url 'catalog:book_create' %}" class="btn btn-accent">Нова книга</a>
+        <a href="{% url 'catalog:book_create' %}" class="btn btn-accent">{% trans "Нова книга" %}</a>
     {% endif %}
 </div>
 
 {% include "catalog/includes/book_filters.html" %}
 
 {% if books %}
+<p class="text-muted small books-found">{% blocktrans count counter=page_obj.paginator.count %}Знайдено {{ counter }} книгу{% plural %}Знайдено {{ counter }} книг{% endblocktrans %}</p>
 <div class="row g-3">
     {% for book in books %}
-    <div class="col-md-6 col-xl-3">
+    <div class="col-6 col-md-4 col-xl-3">
         {% include "catalog/includes/book_card.html" %}
     </div>
     {% endfor %}
 </div>
 {% else %}
 <div class="alert alert-warning">
-    Книг не знайдено. Спробуйте інший фільтр або
-    <code>python manage.py seed_demo</code>.
+    {% blocktrans %}Книг не знайдено. Спробуйте інший фільтр або <code>python manage.py seed_demo</code>.{% endblocktrans %}
 </div>
 {% endif %}
 

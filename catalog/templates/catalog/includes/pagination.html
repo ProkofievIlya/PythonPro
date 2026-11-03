@@ -1,14 +1,15 @@
+{% load i18n %}
 {% if is_paginated %}
-<nav aria-label="Пагінація каталогу">
+<nav aria-label="{% trans 'Пагінація каталогу' %}">
     <ul class="pagination justify-content-center flex-wrap">
         <li class="page-item {% if not page_obj.has_previous %}disabled{% endif %}">
             {% if page_obj.has_previous %}
                 <a class="page-link"
                    href="?page={{ page_obj.previous_page_number }}{% if preserved_query %}&{{ preserved_query }}{% endif %}">
-                    Попередня
+                    {% trans "Попередня" %}
                 </a>
             {% else %}
-                <span class="page-link">Попередня</span>
+                <span class="page-link">{% trans "Попередня" %}</span>
             {% endif %}
         </li>
 
@@ -25,15 +26,15 @@
             {% if page_obj.has_next %}
                 <a class="page-link"
                    href="?page={{ page_obj.next_page_number }}{% if preserved_query %}&{{ preserved_query }}{% endif %}">
-                    Наступна
+                    {% trans "Наступна" %}
                 </a>
             {% else %}
-                <span class="page-link">Наступна</span>
+                <span class="page-link">{% trans "Наступна" %}</span>
             {% endif %}
         </li>
     </ul>
     <p class="text-center text-muted small">
-        Сторінка {{ page_obj.number }} з {{ page_obj.paginator.num_pages }}
+        {% blocktrans with number=page_obj.number pages=page_obj.paginator.num_pages %}Сторінка {{ number }} з {{ pages }}{% endblocktrans %}
     </p>
 </nav>
 {% endif %}

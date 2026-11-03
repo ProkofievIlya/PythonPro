@@ -4,13 +4,16 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import PermissionRequiredMixin
 from django.core.paginator import Paginator
-from django.db.models import Q, QuerySet
+from django.db.models import Q, QuerySet, Value
+from django.db.models.functions import Coalesce, NullIf
 from django.conf import settings
 from django.http import HttpRequest, HttpResponse, JsonResponse, QueryDict
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 from django.urls import reverse_lazy
+from django.utils.translation import get_language
+from django.utils.translation import gettext as _
 from django.views.generic import (
     CreateView,
     DeleteView,
@@ -19,16 +22,25 @@ from django.views.generic import (
     UpdateView,
 )
 
-import json
+import logging
 
 import stripe
 
 from .cart import Cart
-from .checkout import cancel_order, create_order, mark_order_paid, start_checkout
-from .forms import BookForm
+from .checkout import (
+    cancel_order,
+    cancel_order_by_session,
+    create_order,
+    is_session_paid,
+    mark_order_paid,
+    start_checkout,
+)
+from .forms import BookForm, CheckoutForm
 from .models import Book, Category, Order
 
 BOOKS_PER_PAGE: int = 4
+
+logger = logging.getLogger("bookstore")
 
 
 def _filter_books(queryset: QuerySet[Book], params: QueryDict) -> QuerySet[Book]:
@@ -38,6 +50,9 @@ def _filter_books(queryset: QuerySet[Book], params: QueryDict) -> QuerySet[Book]
             Q(title__icontains=q)
             | Q(author__icontains=q)
             | Q(description__icontains=q)
+            | Q(title_en__icontains=q)
+            | Q(author_en__icontains=q)
+            | Q(description_en__icontains=q)
         )
 
     category_id = params.get("category", "").strip()
@@ -48,6 +63,15 @@ def _filter_books(queryset: QuerySet[Book], params: QueryDict) -> QuerySet[Book]
         queryset = queryset.filter(stock__gt=0)
 
     return queryset
+
+
+def ordered_by_title(queryset: QuerySet[Book]) -> QuerySet[Book]:
+    """Сортування за назвою мовою інтерфейсу (в EN - за title_en, якщо заповнена)."""
+    if (get_language() or "").startswith("en"):
+        return queryset.annotate(
+            sort_title=Coalesce(NullIf("title_en", Value("")), "title")
+        ).order_by("sort_title", "pk")
+    return queryset.order_by("title", "pk")
 
 
 def _preserved_query(params: QueryDict, exclude: tuple[str, ...] = ("page",)) -> str:
@@ -67,8 +91,10 @@ def home(request: HttpRequest) -> HttpResponse:
         request,
         "catalog/home.html",
         {
-            "title": "Книги, які залишаються з вами",
-            "message": "Художні, наукові й дитячі видання. Оберіть книгу і покладіть її в кошик.",
+            "title": _("Книги, які залишаються з вами"),
+            "message": _(
+                "Художні, наукові й дитячі видання. Оберіть книгу і покладіть її в кошик."
+            ),
             "featured": featured,
         },
     )
@@ -76,7 +102,7 @@ def home(request: HttpRequest) -> HttpResponse:
 
 def book_list_fbv(request: HttpRequest) -> HttpResponse:
     queryset = _filter_books(
-        Book.objects.select_related("category").order_by("title"),
+        ordered_by_title(Book.objects.select_related("category")),
         request.GET,
     )
     paginator = Paginator(queryset, BOOKS_PER_PAGE)
@@ -117,7 +143,7 @@ class BookListView(ListView):
     paginate_by = BOOKS_PER_PAGE
 
     def get_queryset(self) -> QuerySet[Book]:
-        queryset = Book.objects.select_related("category").order_by("title")
+        queryset = ordered_by_title(Book.objects.select_related("category"))
         return _filter_books(queryset, self.request.GET)
 
     def get_context_data(self, **kwargs: Any) -> dict[str, Any]:
@@ -226,14 +252,15 @@ def cart_detail(request: HttpRequest) -> HttpResponse:
 def checkout(request: HttpRequest) -> HttpResponse:
     cart = Cart(request)
     if len(cart) == 0:
-        messages.error(request, "Кошик порожній.")
+        messages.error(request, _("Кошик порожній."))
         return redirect("catalog:cart_detail")
-    email = (request.POST.get("email") or "").strip()
-    if not email:
-        messages.error(request, "Вкажіть email для замовлення.")
+    form = CheckoutForm(request.POST)
+    if not form.is_valid():
+        messages.error(request, form.errors["email"][0])
         return redirect("catalog:cart_detail")
+    email = form.cleaned_data["email"]
     if not settings.STRIPE_SECRET_KEY:
-        messages.error(request, "Оплата Stripe ще не налаштована.")
+        messages.error(request, _("Оплата Stripe ще не налаштована."))
         return redirect("catalog:cart_detail")
     order = None
     try:
@@ -242,7 +269,7 @@ def checkout(request: HttpRequest) -> HttpResponse:
     except Exception:
         if order is not None:
             cancel_order(order)
-        messages.error(request, "Не вдалося створити оплату. Спробуйте ще раз.")
+        messages.error(request, _("Не вдалося створити оплату. Спробуйте ще раз."))
         return redirect("catalog:cart_detail")
     request.session["pending_order_id"] = order.pk
     cart.clear()
@@ -251,10 +278,20 @@ def checkout(request: HttpRequest) -> HttpResponse:
 
 @login_required
 def checkout_success(request: HttpRequest) -> HttpResponse:
+    """Повернення зі Stripe. Оплату перевіряємо у Stripe, а не за параметром URL."""
     session_id = request.GET.get("session_id", "")
-    order = mark_order_paid(session_id) if session_id else None
-    request.session.pop("pending_order_id", None)
-    return render(request, "catalog/checkout_success.html", {"order": order})
+    order = None
+    if session_id:
+        order = Order.objects.filter(
+            stripe_session_id=session_id, user=request.user
+        ).first()
+    if order is not None and order.status == Order.Status.PENDING:
+        if is_session_paid(session_id):
+            order = mark_order_paid(session_id)
+    paid_order = order if order is not None and order.status == Order.Status.PAID else None
+    if paid_order is not None:
+        request.session.pop("pending_order_id", None)
+    return render(request, "catalog/checkout_success.html", {"order": paid_order})
 
 
 @login_required
@@ -264,25 +301,33 @@ def checkout_cancel(request: HttpRequest) -> HttpResponse:
         order = Order.objects.filter(pk=order_id, user=request.user).first()
         if order:
             cancel_order(order)
-    messages.info(request, "Оплату скасовано.")
+    messages.info(request, _("Оплату скасовано."))
     return redirect("catalog:cart_detail")
 
 
+PAID_EVENTS = {"checkout.session.completed", "checkout.session.async_payment_succeeded"}
+FAILED_EVENTS = {"checkout.session.expired", "checkout.session.async_payment_failed"}
+
+
 @csrf_exempt
+@require_POST
 def stripe_webhook(request: HttpRequest) -> JsonResponse:
-    payload = request.body
+    """Події Stripe приймаємо лише з перевіреним підписом."""
+    if not settings.STRIPE_WEBHOOK_SECRET:
+        logger.warning("Stripe webhook відхилено: STRIPE_WEBHOOK_SECRET не задано")
+        return JsonResponse({"error": "webhook secret is not configured"}, status=400)
     signature = request.META.get("HTTP_STRIPE_SIGNATURE", "")
-    stripe.api_key = settings.STRIPE_SECRET_KEY
     try:
-        if settings.STRIPE_WEBHOOK_SECRET:
-            event = stripe.Webhook.construct_event(
-                payload, signature, settings.STRIPE_WEBHOOK_SECRET
-            )
-        else:
-            event = json.loads(payload)
+        event = stripe.Webhook.construct_event(
+            request.body, signature, settings.STRIPE_WEBHOOK_SECRET
+        )
     except (ValueError, stripe.SignatureVerificationError):
         return JsonResponse({"error": "invalid payload"}, status=400)
-    if event["type"] == "checkout.session.completed":
-        session = event["data"]["object"]
-        mark_order_paid(session.get("id", ""))
+    event_type = event["type"]
+    session = event["data"]["object"]
+    session_id = session.get("id", "")
+    if event_type in PAID_EVENTS and session.get("payment_status") == "paid":
+        mark_order_paid(session_id)
+    elif event_type in FAILED_EVENTS:
+        cancel_order_by_session(session_id)
     return JsonResponse({"status": "ok"})

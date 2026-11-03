@@ -1,13 +1,14 @@
 {% extends "catalog/base.html" %}
+{% load i18n %}
 
-{% block title %}Оплата{% endblock %}
+{% block title %}{% trans "Оплата" %}{% endblock %}
 
 {% block content %}
-{% if order %}
-    <h1 class="h2">Замовлення #{{ order.pk }} оплачено</h1>
-    <p>Лист надіслано на {{ order.email }}.</p>
+{% if order and order.status == 'paid' %}
+    <h1 class="h2">{% blocktrans with pk=order.pk %}Замовлення #{{ pk }} оплачено{% endblocktrans %}</h1>
+    <p>{% blocktrans with email=order.email %}Лист надіслано на {{ email }}.{% endblocktrans %}</p>
 {% else %}
-    <h1 class="h2">Оплату не підтверджено</h1>
+    <h1 class="h2">{% trans "Оплату не підтверджено" %}</h1>
 {% endif %}
-<a href="{% url 'catalog:book_list' %}">До каталогу</a>
+<a href="{% url 'catalog:book_list' %}">{% trans "До каталогу" %}</a>
 {% endblock %}

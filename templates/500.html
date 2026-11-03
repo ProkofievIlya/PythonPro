@@ -1,14 +1,15 @@
 {% extends "catalog/base.html" %}
+{% load i18n %}
 
-{% block title %}Помилка сервера (500){% endblock %}
+{% block title %}{% trans "Помилка сервера (500)" %}{% endblock %}
 
 {% block content %}
 <div class="text-center py-5">
     <h1 class="display-1 text-muted">500</h1>
-    <h2 class="h4 mb-3">Внутрішня помилка сервера</h2>
+    <h2 class="h4 mb-3">{% trans "Внутрішня помилка сервера" %}</h2>
     <p class="text-muted mb-4">
-        Щось пішло не так. Спробуйте пізніше або поверніться на головну сторінку.
+        {% trans "Щось пішло не так. Спробуйте пізніше або поверніться на головну сторінку." %}
     </p>
-    <a href="{% url 'catalog:home' %}" class="btn btn-primary">На головну</a>
+    <a href="{% url 'catalog:home' %}" class="btn btn-accent">{% trans "На головну" %}</a>
 </div>
 {% endblock %}

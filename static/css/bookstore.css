@@ -46,7 +46,7 @@ a { color: var(--gold-dark); }
 
 .hero {
     display: grid;
-    grid-template-columns: 1.4fr 0.8fr;
+    grid-template-columns: 1fr;
     gap: 2rem;
     align-items: end;
     background: var(--ink);
@@ -185,7 +185,92 @@ a { color: var(--gold-dark); }
 
 .site-footer { color: var(--muted); }
 
-@media (max-width: 768px) {
-    .hero, .detail-layout { grid-template-columns: 1fr; }
-    .hero { padding: 2rem 1.25rem; }
+/* ---------- Кнопки й форми в стилі сайту ---------- */
+
+.btn-accent:focus-visible,
+.btn-accent:active {
+    background: var(--gold-dark);
+    border-color: var(--gold-dark);
+    color: #fff;
+}
+
+.form-control:focus,
+.form-select:focus,
+.form-check-input:focus {
+    border-color: var(--gold);
+    box-shadow: 0 0 0 0.2rem rgba(180, 83, 42, 0.2);
+}
+
+.form-check-input:checked {
+    background-color: var(--gold);
+    border-color: var(--gold);
+}
+
+.pagination {
+    --bs-pagination-color: var(--gold-dark);
+    --bs-pagination-hover-color: var(--gold-dark);
+    --bs-pagination-focus-color: var(--gold-dark);
+    --bs-pagination-active-bg: var(--gold);
+    --bs-pagination-active-border-color: var(--gold);
+    --bs-pagination-focus-box-shadow: 0 0 0 0.2rem rgba(180, 83, 42, 0.25);
+}
+
+.qty-btn {
+    width: 2.25rem;
+    height: 2.25rem;
+    padding: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    line-height: 1;
+}
+
+.language-switcher .nav-link {
+    padding-left: 0.5rem;
+    padding-right: 0.5rem;
+    opacity: 0.75;
+}
+
+.language-switcher .nav-link.active { opacity: 1; }
+
+.hero .btn-link { text-decoration: none; }
+.hero .btn-link:hover { text-decoration: underline; }
+
+/* ---------- Планшет ---------- */
+
+@media (max-width: 767.98px) {
+    .hero { padding: 2rem 1.25rem; min-height: 0; }
+    .hero h1 { font-size: 2rem; }
+    .hero::after { width: 10rem; height: 10rem; right: -3rem; bottom: -4rem; }
+    .detail-layout { grid-template-columns: 1fr; gap: 1.25rem; }
+    .detail-cover { min-height: 0; max-width: 15rem; margin: 0 auto; }
+    .navbar .navbar-collapse { padding: 0.5rem 0 0.75rem; }
+    .navbar .nav-link { padding-top: 0.6rem; padding-bottom: 0.6rem; }
+    .language-switcher .nav-link:first-child { padding-left: 0; }
+}
+
+/* ---------- Телефон ---------- */
+
+@media (max-width: 575.98px) {
+    main.container { padding-left: 1rem; padding-right: 1rem; }
+    .hero-actions .btn { flex: 1 1 100%; }
+    .book-card { padding: 0.55rem; border-radius: 0.9rem; }
+    .book-card h2 { font-size: 0.98rem; margin-top: 0.6rem; }
+    .book-meta { font-size: 0.82rem; }
+    .book-card-foot { flex-wrap: wrap; gap: 0.4rem; }
+    .book-card-foot form,
+    .book-card-foot .btn,
+    .book-card-foot .badge { width: 100%; }
+    .book-card-foot .btn { padding: 0.45rem 0.5rem; }
+    .site-card { padding: 1rem !important; }
+    .display-6 { font-size: 1.6rem; }
+    .section-title { flex-wrap: wrap; gap: 0.25rem 1rem; }
+    .cart-row-end { width: 100%; justify-content: space-between; }
+    .filter-panel { padding: 0.9rem !important; }
+}
+
+/* Більші зони натискання на сенсорних екранах */
+@media (pointer: coarse) {
+    .btn-sm { min-height: 2.25rem; }
 }

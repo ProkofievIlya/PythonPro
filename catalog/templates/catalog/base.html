@@ -1,10 +1,12 @@
-{% load static %}
+{% load static i18n %}
+{% get_current_language as LANGUAGE_CODE %}
+{% get_available_languages as LANGUAGES %}
 <!DOCTYPE html>
-<html lang="uk">
+<html lang="{{ LANGUAGE_CODE }}">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>{% block title %}Книжковий магазин{% endblock %}</title>
+    <title>{% block title %}{% trans "Книжковий магазин" %}{% endblock %}</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;600;700&family=Source+Serif+4:opsz,wght@8..60,600;8..60,700&display=swap" rel="stylesheet">
@@ -18,29 +20,41 @@
     <div class="container">
         <a class="navbar-brand" href="{% url 'catalog:home' %}">Bookstore</a>
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNavbar"
-                aria-controls="mainNavbar" aria-expanded="false" aria-label="Меню">
+                aria-controls="mainNavbar" aria-expanded="false" aria-label="{% trans 'Меню' %}">
             <span class="navbar-toggler-icon"></span>
         </button>
         <div class="collapse navbar-collapse" id="mainNavbar">
             <ul class="navbar-nav me-auto">
                 <li class="nav-item">
-                    <a class="nav-link" href="{% url 'catalog:home' %}">Головна</a>
+                    <a class="nav-link" href="{% url 'catalog:home' %}">{% trans "Головна" %}</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="{% url 'catalog:book_list' %}">Каталог</a>
+                    <a class="nav-link" href="{% url 'catalog:book_list' %}">{% trans "Каталог" %}</a>
                 </li>
                 <li class="nav-item">
                     <a class="nav-link" href="{% url 'catalog:cart_detail' %}">
-                        Кошик{% if cart_count %} ({{ cart_count }}){% endif %}
+                        {% trans "Кошик" %}{% if cart_count %} ({{ cart_count }}){% endif %}
                     </a>
                 </li>
                 {% if perms.catalog.add_book %}
                 <li class="nav-item">
-                    <a class="nav-link" href="{% url 'catalog:book_create' %}">Додати книгу</a>
+                    <a class="nav-link" href="{% url 'catalog:book_create' %}">{% trans "Додати книгу" %}</a>
                 </li>
                 {% endif %}
             </ul>
             <ul class="navbar-nav">
+                <li class="nav-item">
+                    <form action="{% url 'set_language' %}" method="post" class="d-flex gap-1 language-switcher"
+                          aria-label="{% trans 'Мова' %}">
+                        {% csrf_token %}
+                        <input type="hidden" name="next" value="{{ request.get_full_path }}">
+                        {% for code, name in LANGUAGES %}
+                            <button type="submit" name="language" value="{{ code }}"
+                                    class="nav-link btn btn-link{% if code == LANGUAGE_CODE %} active fw-bold{% endif %}"
+                                    lang="{{ code }}">{{ code|upper }}</button>
+                        {% endfor %}
+                    </form>
+                </li>
                 {% if user.is_authenticated %}
                     <li class="nav-item">
                         <span class="nav-link">{{ user.username }}</span>
@@ -48,19 +62,19 @@
                     <li class="nav-item">
                         <form method="post" action="{% url 'account_logout' %}" class="d-inline">
                             {% csrf_token %}
-                            <button type="submit" class="nav-link btn btn-link">Вийти</button>
+                            <button type="submit" class="nav-link btn btn-link">{% trans "Вийти" %}</button>
                         </form>
                     </li>
                 {% else %}
                     <li class="nav-item">
-                        <a class="nav-link" href="{% url 'account_login' %}">Увійти</a>
+                        <a class="nav-link" href="{% url 'account_login' %}">{% trans "Увійти" %}</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="{% url 'account_signup' %}">Реєстрація</a>
+                        <a class="nav-link" href="{% url 'account_signup' %}">{% trans "Реєстрація" %}</a>
                     </li>
                 {% endif %}
                 <li class="nav-item">
-                    <a class="nav-link" href="/admin/">Адмінка</a>
+                    <a class="nav-link" href="/admin/">{% trans "Адмінка" %}</a>
                 </li>
             </ul>
         </div>
@@ -72,7 +86,7 @@
         {% for message in messages %}
             <div class="alert alert-{{ message.tags|default:'info' }} alert-dismissible fade show" role="alert">
                 {{ message }}
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Закрити"></button>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="{% trans 'Закрити' %}"></button>
             </div>
         {% endfor %}
     {% endif %}
@@ -81,7 +95,7 @@
 
 <footer class="site-footer border-top py-3 mt-auto">
     <div class="container small">
-        Книжковий магазин
+        {% trans "Книжковий магазин" %}
     </div>
 </footer>
 

@@ -1,15 +1,16 @@
 {% extends "catalog/base.html" %}
+{% load i18n %}
 
 {% block title %}
-    {% if object %}Редагування: {{ object.title }}{% else %}Нова книга{% endif %}
+    {% if object %}{% blocktrans with title=object.title %}Редагування: {{ title }}{% endblocktrans %}{% else %}{% trans "Нова книга" %}{% endif %}
 {% endblock %}
 
 {% block content %}
 <h1 class="h2 mb-4">
-    {% if object %}Редагування книги{% else %}Додати книгу{% endif %}
+    {% if object %}{% trans "Редагування книги" %}{% else %}{% trans "Додати книгу" %}{% endif %}
 </h1>
 
-<form method="post" novalidate>
+<form method="post" enctype="multipart/form-data" novalidate>
     {% csrf_token %}
     {% if form.non_field_errors %}
         <div class="alert alert-danger">{{ form.non_field_errors }}</div>
@@ -29,9 +30,9 @@
     {% endfor %}
 
     <div class="d-flex gap-2">
-        <button type="submit" class="btn btn-primary">Зберегти</button>
+        <button type="submit" class="btn btn-accent">{% trans "Зберегти" %}</button>
         <a href="{% if object %}{% url 'catalog:book_detail' object.pk %}{% else %}{% url 'catalog:book_list' %}{% endif %}"
-           class="btn btn-outline-secondary">Скасувати</a>
+           class="btn btn-outline-secondary">{% trans "Скасувати" %}</a>
     </div>
 </form>
 {% endblock %}

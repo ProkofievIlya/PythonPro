@@ -1,5 +1,6 @@
 from django.apps import AppConfig
 from django.db.models.signals import post_migrate
+from django.utils.translation import gettext_lazy
 
 
 def ensure_local_site(sender, **kwargs):
@@ -46,7 +47,7 @@ def ensure_catalog_groups(sender, **kwargs):
 class AccountsConfig(AppConfig):
     default_auto_field = "django.db.models.BigAutoField"
     name = "accounts"
-    verbose_name = "Користувачі"
+    verbose_name = gettext_lazy("Користувачі")
 
     def ready(self) -> None:
         post_migrate.connect(

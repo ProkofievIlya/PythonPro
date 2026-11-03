@@ -56,6 +56,17 @@ python manage.py runserver
 
 Суперкористувач бачить усі дії з книгами. Звичайного користувача після реєстрації треба додати в групу в адмінці, інакше він може лише переглядати каталог.
 
+### Швидкий запуск без Docker (SQLite)
+
+```powershell
+$env:DJANGO_SETTINGS_MODULE = "bookstore.settings_local"
+python manage.py migrate
+python manage.py seed_demo
+python manage.py runserver
+```
+
+`bookstore/settings_local.py` використовує файл `db_local.sqlite3` і кеш у пам'яті, тож PostgreSQL і Redis не потрібні.
+
 ## Структура
 
 ```
@@ -87,3 +98,48 @@ python manage.py seed_demo
 ```
 
 Команда додає 3 категорії та кілька книг, якщо їх ще немає.
+
+## Інтернаціоналізація (uk + en)
+
+- Мови: українська (за замовчуванням) і англійська, перемикач `UK / EN` у навбарі (`/i18n/setlang/`, мова зберігається в cookie `django_language`; також враховується `Accept-Language`).
+- Вихідні рядки (msgid) — українські; переклади лежать у `locale/<мова>/LC_MESSAGES/django.po`, скомпільовані файли `django.mo` вже в репозиторії.
+- Дані книг і категорій мають англійські поля (`title_en`, `author_en`, `description_en`, `name_en`): у англійському інтерфейсі показуються вони, а якщо поле порожнє — українське значення. Заповнюються в адмінці (блок «Англійською») або формі книги; `seed_demo` додає переклади демо-книг.
+- Перекладено: verbose_name моделей і статуси замовлення, форми та їхні помилки, шаблони (`{% trans %}`, `{% blocktrans %}` з множиною), повідомлення `messages`, лист із замовленням, JSON-помилки API.
+- Оновити переклади після зміни текстів (потрібен GNU gettext):
+
+```powershell
+python manage.py makemessages -l uk -l en
+python manage.py compilemessages
+```
+
+- Без gettext (наприклад, на Windows) `.mo` можна зібрати зі `.po` скриптом: `python scripts/compile_messages.py`.
+
+## Async-в'ю (async ORM)
+
+| URL | Опис |
+|-----|------|
+| `/api/stats/` | кількість книг/категорій, залишок, середня ціна (`acount`, `aaggregate`, `asyncio.gather`) |
+| `/api/books/?q=&category=&in_stock=1` | пошук книг (`async for` по QuerySet) |
+| `/api/categories/<slug>/` | категорія з книгами (`aget`) |
+| `/api/orders/` | замовлення поточного користувача (`await request.auser()`) |
+
+## Тести
+
+```powershell
+pip install -r requirements-dev.txt
+pytest
+```
+
+- `pytest-django` + `factory-boy` (`tests/factories.py`), налаштування `bookstore/settings_test.py` (SQLite у пам'яті, locmem-кеш і пошта — Postgres та Redis не потрібні).
+- `tests/unit/` — моделі, форми, в'ю, корзина, сервіси оформлення, async API, i18n; `tests/integration/` — наскрізні сценарії користувача.
+- Stripe і email замінені mock-ами (`unittest.mock`, `mailoutbox`), реальні запити не виконуються.
+- Покриття: `pytest` одразу показує звіт `--cov`; поріг 70% задано в `.coveragerc` (`fail_under`). Окремі групи: `pytest -m unit`, `pytest -m integration`.
+
+## Оплата Stripe: як це працює
+
+- Після створення замовлення книги резервуються (зменшується залишок), користувача переводить на Stripe Checkout.
+- Сторінка `/checkout/success/` **перепитує Stripe** (`Session.retrieve`) і позначає замовлення оплаченим лише при `payment_status == "paid"` і тільки для власника замовлення. Лист із замовленням надсилається після оплати.
+- Webhook `/stripe/webhook/` приймає події **лише з перевіреним підписом**: без `STRIPE_WEBHOOK_SECRET` він відповідає 400. Обробляються `checkout.session.completed` / `async_payment_succeeded` (оплачено) та `checkout.session.expired` / `async_payment_failed` (замовлення скасовується, книги повертаються на склад).
+- Локально секрет webhook дає Stripe CLI: `stripe listen --forward-to 127.0.0.1:8000/stripe/webhook/` (виведений `whsec_...` вписати в `.env`).
+- Неоплачені замовлення, яким більше доби, можна скасувати вручну: `python manage.py cancel_stale_orders --hours 24`.
+

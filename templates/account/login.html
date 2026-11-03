@@ -1,12 +1,12 @@
 {% extends "catalog/base.html" %}
-{% load socialaccount %}
+{% load socialaccount i18n %}
 
-{% block title %}Вхід{% endblock %}
+{% block title %}{% trans "Вхід" %}{% endblock %}
 
 {% block content %}
 <div class="row justify-content-center">
     <div class="col-md-6">
-        <h1 class="h3 mb-4">Вхід</h1>
+        <h1 class="h3 mb-4">{% trans "Вхід" %}</h1>
         <form method="post" action="{% url 'account_login' %}" novalidate>
             {% csrf_token %}
             {{ redirect_field }}
@@ -22,15 +22,15 @@
                     {% endif %}
                 </div>
             {% endfor %}
-            <button type="submit" class="btn btn-primary">Увійти</button>
-            <a href="{% url 'account_signup' %}" class="btn btn-link">Реєстрація</a>
+            <button type="submit" class="btn btn-accent">{% trans "Увійти" %}</button>
+            <a href="{% url 'account_signup' %}" class="btn btn-link">{% trans "Реєстрація" %}</a>
         </form>
         {% get_providers as socialaccount_providers %}
         {% if socialaccount_providers %}
             <hr>
             {% for provider in socialaccount_providers %}
                 <a class="btn btn-outline-dark" href="{% provider_login_url provider.id process='login' %}">
-                    Увійти через {{ provider.name }}
+                    {% blocktrans with name=provider.name %}Увійти через {{ name }}{% endblocktrans %}
                 </a>
             {% endfor %}
         {% endif %}

@@ -1,6 +1,6 @@
 from django.urls import path
 
-from . import views
+from . import async_views, views
 
 app_name = "catalog"
 
@@ -22,4 +22,8 @@ urlpatterns = [
     path("books/<int:pk>/", views.BookDetailView.as_view(), name="book_detail"),
     path("books/<int:pk>/edit/", views.BookUpdateView.as_view(), name="book_update"),
     path("books/<int:pk>/delete/", views.BookDeleteView.as_view(), name="book_delete"),
+    path("api/stats/", async_views.stats_api, name="api_stats"),
+    path("api/books/", async_views.search_api, name="api_books"),
+    path("api/categories/<str:slug>/", async_views.category_api, name="api_category"),
+    path("api/orders/", async_views.my_orders_api, name="api_orders"),
 ]

@@ -10,3 +10,11 @@ venv/
 .vscode/
 logs/
 datadump.json
+
+# Тести і покриття
+.coverage
+htmlcov/
+.pytest_cache/
+
+# Завантажені файли
+media/
