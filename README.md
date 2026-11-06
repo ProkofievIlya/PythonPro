@@ -143,3 +143,20 @@ pytest
 - Локально секрет webhook дає Stripe CLI: `stripe listen --forward-to 127.0.0.1:8000/stripe/webhook/` (виведений `whsec_...` вписати в `.env`).
 - Неоплачені замовлення, яким більше доби, можна скасувати вручну: `python manage.py cancel_stale_orders --hours 24`.
 
+## AI Usage
+
+У Lesson25 AI використано для покращення проєкту:
+
+- **Code review** трьох складних в'ю (`checkout`, `checkout_success`, `stripe_webhook`): оригінал, рекомендації та фінальний код у [`AI_REVIEW.md`](AI_REVIEW.md).
+- **Тести моделей**: `tests/unit/test_models_ai.py` (кожен тест має коментар `Generated with AI, reviewed and modified`) і `tests/unit/test_review_fixes.py` (тести правок після ревʼю).
+- **Документація**: docstrings для всіх в'ю в `catalog/views.py` та `accounts/views.py`, цей розділ README.
+- **Промпти**, які використовувались, у [`AI_PROMPTS.md`](AI_PROMPTS.md).
+
+Coverage-звіт для моделей:
+
+```powershell
+# покриття моделей (рядок catalog/models.py у таблиці, потрібно >= 60%)
+pytest tests/unit/test_models.py tests/unit/test_models_ai.py --cov-report=term-missing --cov-fail-under=0
+# повний прогін і HTML-звіт: htmlcov/index.html (загальний поріг 70%)
+pytest --cov-report=html
+```

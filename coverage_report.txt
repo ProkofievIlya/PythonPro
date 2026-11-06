@@ -1,0 +1,63 @@
+============================= test session starts =============================
+platform win32 -- Python 3.12.10, pytest-9.2.0, pluggy-1.7.0
+django: version: 5.2.19, settings: bookstore.settings_test (from ini)
+rootdir: C:\Users\ilya_\OneDrive\╨рсюўшщ ёЄюы\Django_Lesson
+configfile: pytest.ini
+testpaths: tests
+plugins: Faker-40.44.0, cov-7.1.0, django-4.14.0
+collected 285 items
+
+tests\integration\test_user_flows.py ................................... [ 12%]
+...                                                                      [ 13%]
+tests\unit\test_async_views.py .................                         [ 19%]
+tests\unit\test_cart.py ...............                                  [ 24%]
+tests\unit\test_checkout_services.py ......................              [ 32%]
+tests\unit\test_forms.py ..................                              [ 38%]
+tests\unit\test_i18n.py ......                                           [ 40%]
+tests\unit\test_middleware_and_commands.py ....                          [ 42%]
+tests\unit\test_models.py ....................................           [ 54%]
+tests\unit\test_models_ai.py .....................                       [ 62%]
+tests\unit\test_queries.py .......                                       [ 64%]
+tests\unit\test_review_fixes.py ....                                     [ 65%]
+tests\unit\test_views.py ............................................... [ 82%]
+.............                                                            [ 87%]
+tests\unit\test_cart.py ....                                             [ 88%]
+tests\unit\test_forms.py ...                                             [ 89%]
+tests\unit\test_i18n.py ..............................                   [100%]
+
+=============================== tests coverage ================================
+______________ coverage: platform win32, python 3.12.10-final-0 _______________
+
+Name                                                 Stmts   Miss  Cover   Missing
+----------------------------------------------------------------------------------
+accounts\__init__.py                                     0      0   100%
+accounts\admin.py                                       10      0   100%
+accounts\apps.py                                        32      5    84%   15-16, 18-20
+accounts\forms.py                                       11      0   100%
+accounts\models.py                                      10      0   100%
+accounts\views.py                                        4      0   100%
+bookstore\__init__.py                                    0      0   100%
+bookstore\middleware.py                                 16      0   100%
+bookstore\settings_local.py                              9      9     0%   7-23
+bookstore\urls.py                                       11      1    91%   17
+catalog\__init__.py                                      0      0   100%
+catalog\admin.py                                        37      0   100%
+catalog\apps.py                                          6      0   100%
+catalog\async_views.py                                  46      0   100%
+catalog\cart.py                                         50      0   100%
+catalog\checkout.py                                     99      3    97%   27, 98, 129
+catalog\context_processors.py                           11      0   100%
+catalog\forms.py                                        19      0   100%
+catalog\management\__init__.py                           0      0   100%
+catalog\management\commands\__init__.py                  0      0   100%
+catalog\management\commands\cancel_stale_orders.py      10      0   100%
+catalog\management\commands\seed_demo.py                24      0   100%
+catalog\models.py                                      101      0   100%
+catalog\queries.py                                      17      0   100%
+catalog\urls.py                                          4      0   100%
+catalog\views.py                                       204      0   100%
+----------------------------------------------------------------------------------
+TOTAL                                                  731     18    98%
+Coverage HTML written to dir htmlcov
+Required test coverage of 70.0% reached. Total coverage: 97.54%
+============================ 285 passed in 16.91s =============================
