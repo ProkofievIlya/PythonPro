@@ -150,7 +150,13 @@ pytest
 - **Code review** трьох складних в'ю (`checkout`, `checkout_success`, `stripe_webhook`): оригінал, рекомендації та фінальний код у [`AI_REVIEW.md`](AI_REVIEW.md).
 - **Тести моделей**: `tests/unit/test_models_ai.py` (кожен тест має коментар `Generated with AI, reviewed and modified`) і `tests/unit/test_review_fixes.py` (тести правок після ревʼю).
 - **Документація**: docstrings для всіх в'ю в `catalog/views.py` та `accounts/views.py`, цей розділ README.
-- **Промпти**, які використовувались, у [`AI_PROMPTS.md`](AI_PROMPTS.md).
+- **Промпти**, які використовувались (повний текст у [`AI_PROMPTS.md`](AI_PROMPTS.md)):
+  1. Code review в'ю `checkout`, `checkout_success`, `stripe_webhook`: безпека, обробка помилок, логування, без зміни поведінки.
+  2. Оцінка кожної рекомендації: чи валідна саме для цього проєкту.
+  3. Тести моделей `Category`, `Book`, `Order`, `OrderItem` на граничні випадки через factory-boy, без дублів, з коментарем `Generated with AI, reviewed and modified`.
+  4. Тести правок після ревʼю (логування, вебхук без id, невідоме замовлення), Stripe через mock.
+  5. Українські docstrings для всіх в'ю без зміни коду.
+  6. Оновлення README: розділ AI Usage та команди для coverage.
 
 Coverage-звіт для моделей:
 
