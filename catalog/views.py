@@ -44,6 +44,7 @@ logger = logging.getLogger("bookstore")
 
 
 def _filter_books(queryset: QuerySet[Book], params: QueryDict) -> QuerySet[Book]:
+    """Застосовує фільтри з GET-параметрів: q (пошук), category (slug), in_stock=1."""
     q = params.get("q", "").strip()
     if q:
         queryset = queryset.filter(
@@ -75,6 +76,7 @@ def ordered_by_title(queryset: QuerySet[Book]) -> QuerySet[Book]:
 
 
 def _preserved_query(params: QueryDict, exclude: tuple[str, ...] = ("page",)) -> str:
+    """Повертає рядок query-параметрів без перелічених (за замовчуванням без page) для посилань пагінації."""
     copy = params.copy()
     for key in exclude:
         copy.pop(key, None)
@@ -82,6 +84,7 @@ def _preserved_query(params: QueryDict, exclude: tuple[str, ...] = ("page",)) ->
 
 
 def home(request: HttpRequest) -> HttpResponse:
+    """Головна сторінка: до чотирьох книг, що є в наявності."""
     featured = (
         Book.objects.filter(stock__gt=0)
         .select_related("category")
@@ -101,6 +104,7 @@ def home(request: HttpRequest) -> HttpResponse:
 
 
 def book_list_fbv(request: HttpRequest) -> HttpResponse:
+    """Каталог книг (FBV-версія): пошук, фільтри та пагінація."""
     queryset = _filter_books(
         ordered_by_title(Book.objects.select_related("category")),
         request.GET,
@@ -125,6 +129,7 @@ def book_list_fbv(request: HttpRequest) -> HttpResponse:
 
 
 def book_detail_fbv(request: HttpRequest, pk: int) -> HttpResponse:
+    """Сторінка книги (FBV-версія); 404, якщо книги не існує."""
     book = get_object_or_404(Book.objects.select_related("category"), pk=pk)
     return render(
         request,
@@ -137,6 +142,7 @@ def book_detail_fbv(request: HttpRequest, pk: int) -> HttpResponse:
 
 
 class BookListView(ListView):
+    """Каталог книг (CBV-версія): пошук, фільтри та пагінація."""
     model = Book
     template_name = "catalog/book_list.html"
     context_object_name = "books"
@@ -158,6 +164,7 @@ class BookListView(ListView):
 
 
 class BookDetailView(DetailView):
+    """Сторінка книги (CBV-версія)."""
     model = Book
     template_name = "catalog/book_detail.html"
     context_object_name = "book"
@@ -172,6 +179,7 @@ class BookDetailView(DetailView):
 
 
 class BookCreateView(PermissionRequiredMixin, CreateView):
+    """Створення книги; потрібне право catalog.add_book."""
     permission_required = "catalog.add_book"
     model = Book
     form_class = BookForm
@@ -180,6 +188,7 @@ class BookCreateView(PermissionRequiredMixin, CreateView):
 
 
 class BookUpdateView(PermissionRequiredMixin, UpdateView):
+    """Редагування книги; потрібне право catalog.change_book."""
     permission_required = "catalog.change_book"
     model = Book
     form_class = BookForm
@@ -193,6 +202,7 @@ class BookUpdateView(PermissionRequiredMixin, UpdateView):
 
 
 class BookDeleteView(PermissionRequiredMixin, DeleteView):
+    """Видалення книги; потрібне право catalog.delete_book."""
     permission_required = "catalog.delete_book"
     model = Book
     template_name = "catalog/book_confirm_delete.html"
@@ -201,15 +211,18 @@ class BookDeleteView(PermissionRequiredMixin, DeleteView):
 
 
 def page_not_found(request: HttpRequest, exception: Exception) -> HttpResponse:
+    """Власний обробник 404."""
     return render(request, "404.html", status=404)
 
 
 def server_error(request: HttpRequest) -> HttpResponse:
+    """Власний обробник 500."""
     return render(request, "500.html", status=500)
 
 
 @require_POST
 def cart_add(request: HttpRequest, pk: int) -> HttpResponse:
+    """Додає книгу до кошика (лише POST) і веде на сторінку кошика."""
     book = get_object_or_404(Book, pk=pk)
     Cart(request).add(book)
     return redirect("catalog:cart_detail")
@@ -217,6 +230,7 @@ def cart_add(request: HttpRequest, pk: int) -> HttpResponse:
 
 @require_POST
 def cart_decrease(request: HttpRequest, pk: int) -> HttpResponse:
+    """Зменшує кількість книги в кошику на одиницю (лише POST)."""
     book = get_object_or_404(Book, pk=pk)
     Cart(request).decrease(book)
     return redirect("catalog:cart_detail")
@@ -224,6 +238,7 @@ def cart_decrease(request: HttpRequest, pk: int) -> HttpResponse:
 
 @require_POST
 def cart_remove(request: HttpRequest, pk: int) -> HttpResponse:
+    """Видаляє книгу з кошика (лише POST)."""
     book = get_object_or_404(Book, pk=pk)
     Cart(request).remove(book)
     return redirect("catalog:cart_detail")
@@ -231,11 +246,13 @@ def cart_remove(request: HttpRequest, pk: int) -> HttpResponse:
 
 @require_POST
 def cart_clear(request: HttpRequest) -> HttpResponse:
+    """Повністю очищає кошик (лише POST)."""
     Cart(request).clear()
     return redirect("catalog:cart_detail")
 
 
 def cart_detail(request: HttpRequest) -> HttpResponse:
+    """Сторінка кошика з формою оформлення замовлення."""
     cart = Cart(request)
     return render(
         request,
@@ -250,6 +267,9 @@ def cart_detail(request: HttpRequest) -> HttpResponse:
 @login_required
 @require_POST
 def checkout(request: HttpRequest) -> HttpResponse:
+    """Оформлення замовлення: резервує товар, створює сесію Stripe і перенаправляє на оплату.
+
+    Помилка Stripe скасовує замовлення й повертає товар на склад."""
     cart = Cart(request)
     if len(cart) == 0:
         messages.error(request, _("Кошик порожній."))
@@ -267,6 +287,7 @@ def checkout(request: HttpRequest) -> HttpResponse:
         order = create_order(request.user, email, cart)
         url = start_checkout(request, order)
     except Exception:
+        logger.exception("Checkout: не вдалося створити оплату (замовлення %s)", getattr(order, "pk", None))
         if order is not None:
             cancel_order(order)
         messages.error(request, _("Не вдалося створити оплату. Спробуйте ще раз."))
@@ -285,9 +306,12 @@ def checkout_success(request: HttpRequest) -> HttpResponse:
         order = Order.objects.filter(
             stripe_session_id=session_id, user=request.user
         ).first()
-    if order is not None and order.status == Order.Status.PENDING:
-        if is_session_paid(session_id):
-            order = mark_order_paid(session_id)
+    if (
+        order is not None
+        and order.status == Order.Status.PENDING
+        and is_session_paid(session_id)
+    ):
+        order = mark_order_paid(session_id) or order
     paid_order = order if order is not None and order.status == Order.Status.PAID else None
     if paid_order is not None:
         request.session.pop("pending_order_id", None)
@@ -296,6 +320,7 @@ def checkout_success(request: HttpRequest) -> HttpResponse:
 
 @login_required
 def checkout_cancel(request: HttpRequest) -> HttpResponse:
+    """Користувач скасував оплату у Stripe: скасовуємо замовлення й повертаємо товар на склад."""
     order_id = request.session.pop("pending_order_id", None)
     if order_id:
         order = Order.objects.filter(pk=order_id, user=request.user).first()
@@ -326,8 +351,16 @@ def stripe_webhook(request: HttpRequest) -> JsonResponse:
     event_type = event["type"]
     session = event["data"]["object"]
     session_id = session.get("id", "")
+    if not session_id:
+        logger.warning("Stripe webhook %s без id сесії - пропущено", event_type)
+        return JsonResponse({"status": "ignored"})
+    order = None
     if event_type in PAID_EVENTS and session.get("payment_status") == "paid":
-        mark_order_paid(session_id)
+        order = mark_order_paid(session_id)
     elif event_type in FAILED_EVENTS:
-        cancel_order_by_session(session_id)
+        order = cancel_order_by_session(session_id)
+    else:
+        return JsonResponse({"status": "ok"})
+    if order is None:
+        logger.warning("Stripe webhook %s: замовлення для сесії %s не знайдено", event_type, session_id)
     return JsonResponse({"status": "ok"})
