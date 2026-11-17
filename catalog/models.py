@@ -170,3 +170,41 @@ class OrderItem(models.Model):
     @property
     def line_total(self):
         return self.price * self.quantity
+
+
+class Cart(models.Model):
+    """Кошик користувача в БД (для REST API; веб-інтерфейс користується сесійним Cart)."""
+
+    user = models.OneToOneField(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="cart",
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self) -> str:
+        return f"Cart #{self.pk} ({self.user})"
+
+    @property
+    def total(self):
+        return sum((item.line_total for item in self.items.all()), 0)
+
+
+class CartItem(models.Model):
+    cart = models.ForeignKey(Cart, on_delete=models.CASCADE, related_name="items")
+    book = models.ForeignKey(Book, on_delete=models.CASCADE, related_name="cart_items")
+    quantity = models.PositiveIntegerField(default=1)
+
+    class Meta:
+        ordering = ["id"]
+        constraints = [
+            models.UniqueConstraint(fields=["cart", "book"], name="unique_book_per_cart"),
+        ]
+
+    def __str__(self) -> str:
+        return f"{self.book} × {self.quantity}"
+
+    @property
+    def line_total(self):
+        return self.book.price * self.quantity
