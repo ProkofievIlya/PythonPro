@@ -35,3 +35,6 @@ STRIPE_PUBLISHABLE_KEY = "pk_test_dummy"
 STRIPE_WEBHOOK_SECRET = "whsec_test"
 
 SOCIALACCOUNT_PROVIDERS = {}
+
+# Тести API не повинні впиратися в ліміти (окремі тести перевіряють throttling).
+REST_FRAMEWORK = {**REST_FRAMEWORK, "DEFAULT_THROTTLE_RATES": {"anon": "10000/min", "user": "10000/min", "token": "10000/min"}}  # noqa: F405
